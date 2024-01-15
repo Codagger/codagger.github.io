@@ -331,7 +331,7 @@
 意思是隐藏的，类构造函数默认情况下即声明为 implicit (隐式)</p>
 <figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> {</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">A</span>(<span class="type">int</span> i) {}</span><br><span class="line">    <span class="built_in">A</span>(<span class="type">int</span> i, <span class="type">int</span> j) {}</span><br><span class="line">};</span><br><span class="line">A a = <span class="number">30</span>; <span class="comment">// 正确, 隐式调用构造函数, 自动隐式转换</span></span><br><span class="line">A b = {<span class="number">1</span>, <span class="number">2</span>}; <span class="comment">// 正确, 复制列表初始化</span></span><br></pre></td></tr></tbody></table></figure>
 <figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> {</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="title">A</span><span class="params">(<span class="type">int</span> i)</span> </span>{} <span class="comment">// 显式构造函数, 不能隐式调用</span></span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="title">A</span><span class="params">(<span class="type">int</span> i, <span class="type">int</span> j)</span> </span>{}</span><br><span class="line">}</span><br><span class="line"><span class="function">A <span class="title">a</span><span class="params">(<span class="number">30</span>)</span></span>; <span class="comment">// 显式调用, 正确</span></span><br><span class="line"><span class="comment">// A a = 30; // 隐式调用, 错误</span></span><br><span class="line"><span class="comment">// A a = {2, 3}; // 隐式调用, 错误</span></span><br></pre></td></tr></tbody></table></figure>
-<p>详情: <a href="/posts/de05b48b/" title="C++ 中的 explicit 关键字">C++ 中的 explicit 关键字</a></p>
+<p>详情: <a href="/posts/de05b48b/" title="C++中的explicit关键字">C++ 中的 explicit 关键字</a></p>
 <script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
     </div>
 
@@ -450,20 +450,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">33</span>
+          <span class="site-state-item-count">35</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-count">7</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-count">9</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -501,9 +501,9 @@
 <div class="copyright">
   
   &copy; 2019 – 
-  <span itemprop="copyrightYear">2023</span>
+  <span itemprop="copyrightYear">2024</span>
   <span class="with-love">
-    <i class="fa fa-heart"></i>
+    <i class="fa fa-heartbeat"></i>
   </span>
   <span class="author" itemprop="copyrightHolder">fetasty</span>
 </div>
