@@ -546,55 +546,6 @@ linux 的安装</p>
       </tags>
   </entry>
   <entry>
-    <title>C++11 中的线程库 thread 与同步库 mutex</title>
-    <url>/posts/4cc95c54/</url>
-    <content><![CDATA[<p>C++11 提供了线程库和同步库，可以屏蔽操作系统接口细节使用多线程了</p>
-<span id="more"></span>
-<h2 id="多线程">多线程</h2>
-<p><code>std::thread</code> 创建与使用</p>
-<p><code>std::this_thread</code> 当前线程</p>
-<h2 id="线程同步">线程同步</h2>
-<p><code>lock_guard</code> 互斥锁</p>
-<p><code>unique_lock</code> + <code>condition_variable</code> 条件锁</p>
-<h2 id="原子操作库">原子操作库</h2>
-<p>实现轻量免锁的多线程安全操作</p>
-<p><a href="https://zh.cppreference.com/w/cpp/atomic/atomic">https://zh.cppreference.com/w/cpp/atomic/atomic</a></p>
-<p><a href="https://zh.cppreference.com/w/cpp/atomic/atomic_flag">https://zh.cppreference.com/w/cpp/atomic/atomic_flag</a></p>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line">std::atomic_int ttt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">test</span><span class="params">(<span class="type">bool</span> add)</span> </span>{</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100000</span>; ++i) {</span><br><span class="line">        <span class="keyword">if</span> (add) ++ttt;</span><br><span class="line">        <span class="keyword">else</span> --ttt;</span><br><span class="line">    }</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"th exit!\n"</span>);</span><br><span class="line">}</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>{</span><br><span class="line">    ttt = <span class="number">0</span>;</span><br><span class="line">    std::vector&lt;std::thread&gt; ths;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">4</span>; ++i) {</span><br><span class="line">        ths.<span class="built_in">emplace_back</span>(test, i % <span class="number">2</span> == <span class="number">0</span>);</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; th : ths) {</span><br><span class="line">        th.<span class="built_in">join</span>();</span><br><span class="line">    }</span><br><span class="line">    std::cout &lt;&lt; ttt &lt;&lt; std::endl;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>输出为 0; 如果把头一行的 std::atomic_int 换成 int, 得到的结果偏差巨大</p>
-<h2 id="异步任务-future-promise">异步任务 future &amp; promise</h2>
-<p>定义于 <code>&lt;future&gt;</code> 头文件</p>
-<p>使用 future 三种方式: packaged_task, promise, async</p>
-<p><a href="https://zh.cppreference.com/w/cpp/thread/future">https://zh.cppreference.com/w/cpp/thread/future</a></p>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;future&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;thread&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">    <span class="comment">// 来自 packaged_task 的 future</span></span><br><span class="line">    <span class="function">std::packaged_task&lt;<span class="title">int</span><span class="params">()</span>&gt; <span class="title">task</span><span class="params">([](){ <span class="keyword">return</span> <span class="number">7</span>; })</span></span>; <span class="comment">// 包装函数</span></span><br><span class="line">    std::future&lt;<span class="type">int</span>&gt; f1 = task.<span class="built_in">get_future</span>();  <span class="comment">// 获取 future</span></span><br><span class="line">    std::<span class="built_in">thread</span>(std::<span class="built_in">move</span>(task)).<span class="built_in">detach</span>(); <span class="comment">// 在线程上运行</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 来自 async() 的 future</span></span><br><span class="line">    std::future&lt;<span class="type">int</span>&gt; f2 = std::<span class="built_in">async</span>(std::launch::async, [](){ <span class="keyword">return</span> <span class="number">8</span>; });</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 来自 promise 的 future</span></span><br><span class="line">    std::promise&lt;<span class="type">int</span>&gt; p;</span><br><span class="line">    std::future&lt;<span class="type">int</span>&gt; f3 = p.<span class="built_in">get_future</span>();</span><br><span class="line">    std::<span class="built_in">thread</span>( [&amp;p]{ p.<span class="built_in">set_value_at_thread_exit</span>(<span class="number">9</span>); }).<span class="built_in">detach</span>();</span><br><span class="line"></span><br><span class="line">    std::cout &lt;&lt; <span class="string">"Waiting..."</span> &lt;&lt; std::flush;</span><br><span class="line">    f1.<span class="built_in">wait</span>();</span><br><span class="line">    f2.<span class="built_in">wait</span>();</span><br><span class="line">    f3.<span class="built_in">wait</span>();</span><br><span class="line">    std::cout &lt;&lt; <span class="string">"Done!\nResults are: "</span></span><br><span class="line">              &lt;&lt; f1.<span class="built_in">get</span>() &lt;&lt; <span class="string">' '</span> &lt;&lt; f2.<span class="built_in">get</span>() &lt;&lt; <span class="string">' '</span> &lt;&lt; f3.<span class="built_in">get</span>() &lt;&lt; <span class="string">'\n'</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p><code>std::async</code></p>
-<p>最简单的异步任务使用</p>
-<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">std::launch::async // 运行新线程, 以异步执行任务</span><br><span class="line">std::launch::deferred // 调用方线程上首次请求其结果时执行任务（惰性求值）</span><br></pre></td></tr></tbody></table></figure>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">// 马上开始异步任务</span></span><br><span class="line">std::future&lt;<span class="type">int</span>&gt; f2 = std::<span class="built_in">async</span>(std::launch::async, [](){ <span class="keyword">return</span> <span class="number">8</span>; });</span><br><span class="line">f2.<span class="built_in">wait</span>(); <span class="comment">// 阻塞至结果变得可用</span></span><br><span class="line"><span class="type">int</span> result = f2.<span class="built_in">get</span>(); <span class="comment">// 获取结果</span></span><br></pre></td></tr></tbody></table></figure>
-<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
-      <categories>
-        <category>C++</category>
-      </categories>
-      <tags>
-        <tag>C++</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>C++11 中的默认函数控制 delete 和 default</title>
-    <url>/posts/be0f7d71/</url>
-    <content><![CDATA[<p>delete 和 default 在 C++ 中用于显式控制默认函数的生成情况，
-我们需要知道 C++ 编译器到底干了些什么</p>
-<span id="more"></span>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> _CRT_SECURE_NO_WARNINGS</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;map&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">//c++11 类默认函数的控制："=default" 和 "=delete"函数</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">C++ 的类有四类特殊成员函数, 它们分别是：默认构造函数、析构函数、拷贝构造函数以及拷贝赋值运算符.</span></span><br><span class="line"><span class="comment">这些类的特殊成员函数负责创建、初始化、销毁, 或者拷贝类的对象.</span></span><br><span class="line"><span class="comment">如果程序员没有显式地为一个类定义某个特殊成员函数, 而又需要用到该特殊成员函数时, 则编译器会隐式的为这个类生成一个默认的特殊成员函数.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// C++11 标准引入了一个新特性："=default"函数. 程序员只需在函数声明后加上“=default;”, 就可将该函数声明为 "=default"函数, 编译器将为显式声明的 "=default"函数自动生成函数体.</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">X</span>() = <span class="keyword">default</span>; <span class="comment">//该函数比用户自己定义的默认构造函数获得更高的代码效率</span></span><br><span class="line">    <span class="built_in">X</span>(<span class="type">int</span> i)</span><br><span class="line">    {</span><br><span class="line">        a = i;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="type">int</span> a;</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line">X obj;</span><br><span class="line"></span><br><span class="line"><span class="comment">// "=default"函数特性仅适用于类的特殊成员函数, 且该特殊成员函数没有默认参数.</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X1</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">f</span><span class="params">()</span> </span>= <span class="keyword">default</span>;      <span class="comment">// err , 函数 f() 非类 X 的特殊成员函数</span></span><br><span class="line">    <span class="built_in">X1</span>(<span class="type">int</span>, <span class="type">int</span>) = <span class="keyword">default</span>;  <span class="comment">// err , 构造函数 X1(int, int) 非 X 的特殊成员函数</span></span><br><span class="line">    <span class="built_in">X1</span>(<span class="type">int</span> = <span class="number">1</span>) = <span class="keyword">default</span>;   <span class="comment">// err , 默认构造函数 X1(int=1) 含有默认参数</span></span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="comment">// "=default"函数既可以在类体里（inline）定义, 也可以在类体外（out-of-line）定义.</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X2</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">X2</span>() = <span class="keyword">default</span>; <span class="comment">//Inline defaulted 默认构造函数</span></span><br><span class="line">    <span class="built_in">X2</span>(<span class="type">const</span> X&amp;);</span><br><span class="line">    X2&amp; <span class="keyword">operator</span> = (<span class="type">const</span> X&amp;);</span><br><span class="line">    ~<span class="built_in">X2</span>() = <span class="keyword">default</span>;  <span class="comment">//Inline defaulted 析构函数</span></span><br><span class="line">};</span><br><span class="line"></span><br><span class="line">X2::<span class="built_in">X2</span>(<span class="type">const</span> X&amp;) = <span class="keyword">default</span>;  <span class="comment">//Out-of-line defaulted 拷贝构造函数</span></span><br><span class="line">X2&amp; X2::<span class="keyword">operator</span>= (<span class="type">const</span> X2&amp;) = <span class="keyword">default</span>;   <span class="comment">//Out-of-line defaulted  拷贝赋值操作符</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 为了能够让程序员显式的禁用某个函数, C++11 标准引入了一个新特性："=delete"函数. 程序员只需在函数声明后上“=delete;”, 就可将该函数禁用.</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X3</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">X3</span>();</span><br><span class="line">    <span class="built_in">X3</span>(<span class="type">const</span> X3&amp;) = <span class="keyword">delete</span>;  <span class="comment">// 声明拷贝构造函数为 deleted 函数</span></span><br><span class="line">    X3&amp; <span class="keyword">operator</span> = (<span class="type">const</span> X3 &amp;) = <span class="keyword">delete</span>; <span class="comment">// 声明拷贝赋值操作符为 deleted 函数</span></span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="comment">// "=delete"函数特性还可用于禁用类的某些转换构造函数, 从而避免不期望的类型转换</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X4</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">X4</span>(<span class="type">double</span>)</span><br><span class="line">    {</span><br><span class="line"></span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="built_in">X4</span>(<span class="type">int</span>) = <span class="keyword">delete</span>;</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="comment">// "=delete"函数特性还可以用来禁用某些用户自定义的类的 new 操作符, 从而避免在自由存储区创建类的对象</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X5</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> *<span class="keyword">operator</span> <span class="title">new</span><span class="params">(<span class="type">size_t</span>)</span> </span>= <span class="keyword">delete</span>;</span><br><span class="line">    <span class="type">void</span> *<span class="keyword">operator</span> <span class="keyword">new</span>[](<span class="type">size_t</span>) = <span class="keyword">delete</span>;</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">mytest</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">    X4 obj1;</span><br><span class="line">    X4 obj2=obj1;   <span class="comment">// 错误, 拷贝构造函数被禁用</span></span><br><span class="line"></span><br><span class="line">    X4 obj3;</span><br><span class="line">    obj3=obj1;     <span class="comment">// 错误, 拷贝赋值操作符被禁用</span></span><br><span class="line"></span><br><span class="line">    X5 *pa = <span class="keyword">new</span> X5;      <span class="comment">// 错误, new 操作符被禁用</span></span><br><span class="line">    X5 *pb = <span class="keyword">new</span> X5[<span class="number">10</span>];  <span class="comment">// 错误, new[] 操作符被禁用</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">    <span class="built_in">mytest</span>();</span><br><span class="line"></span><br><span class="line">    <span class="built_in">system</span>(<span class="string">"pause"</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br><span class="line"></span><br></pre></td></tr></tbody></table></figure>
-<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
-      <categories>
-        <category>C++</category>
-      </categories>
-      <tags>
-        <tag>C++</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>C++11 中的模板改进</title>
     <url>/posts/bce68dd9/</url>
     <content><![CDATA[<p>C++11 中该进了模板，看看还是比较有用的，
@@ -654,6 +605,55 @@ C++11 中 auto 和 decltype 知识点</a></p>
 你知道的不知道的都在这里</a></p>
 <p>如果有任何问题或想法，可以 点此留言，
 我会尽快回复哒！欢迎小伙伴们踊跃留言，希望这里是大家交流互通的平台～</p>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
+      <categories>
+        <category>C++</category>
+      </categories>
+      <tags>
+        <tag>C++</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>C++11 中的线程库 thread 与同步库 mutex</title>
+    <url>/posts/4cc95c54/</url>
+    <content><![CDATA[<p>C++11 提供了线程库和同步库，可以屏蔽操作系统接口细节使用多线程了</p>
+<span id="more"></span>
+<h2 id="多线程">多线程</h2>
+<p><code>std::thread</code> 创建与使用</p>
+<p><code>std::this_thread</code> 当前线程</p>
+<h2 id="线程同步">线程同步</h2>
+<p><code>lock_guard</code> 互斥锁</p>
+<p><code>unique_lock</code> + <code>condition_variable</code> 条件锁</p>
+<h2 id="原子操作库">原子操作库</h2>
+<p>实现轻量免锁的多线程安全操作</p>
+<p><a href="https://zh.cppreference.com/w/cpp/atomic/atomic">https://zh.cppreference.com/w/cpp/atomic/atomic</a></p>
+<p><a href="https://zh.cppreference.com/w/cpp/atomic/atomic_flag">https://zh.cppreference.com/w/cpp/atomic/atomic_flag</a></p>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line">std::atomic_int ttt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">test</span><span class="params">(<span class="type">bool</span> add)</span> </span>{</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100000</span>; ++i) {</span><br><span class="line">        <span class="keyword">if</span> (add) ++ttt;</span><br><span class="line">        <span class="keyword">else</span> --ttt;</span><br><span class="line">    }</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"th exit!\n"</span>);</span><br><span class="line">}</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>{</span><br><span class="line">    ttt = <span class="number">0</span>;</span><br><span class="line">    std::vector&lt;std::thread&gt; ths;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">4</span>; ++i) {</span><br><span class="line">        ths.<span class="built_in">emplace_back</span>(test, i % <span class="number">2</span> == <span class="number">0</span>);</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; th : ths) {</span><br><span class="line">        th.<span class="built_in">join</span>();</span><br><span class="line">    }</span><br><span class="line">    std::cout &lt;&lt; ttt &lt;&lt; std::endl;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>输出为 0; 如果把头一行的 std::atomic_int 换成 int, 得到的结果偏差巨大</p>
+<h2 id="异步任务-future-promise">异步任务 future &amp; promise</h2>
+<p>定义于 <code>&lt;future&gt;</code> 头文件</p>
+<p>使用 future 三种方式: packaged_task, promise, async</p>
+<p><a href="https://zh.cppreference.com/w/cpp/thread/future">https://zh.cppreference.com/w/cpp/thread/future</a></p>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;future&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;thread&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">    <span class="comment">// 来自 packaged_task 的 future</span></span><br><span class="line">    <span class="function">std::packaged_task&lt;<span class="title">int</span><span class="params">()</span>&gt; <span class="title">task</span><span class="params">([](){ <span class="keyword">return</span> <span class="number">7</span>; })</span></span>; <span class="comment">// 包装函数</span></span><br><span class="line">    std::future&lt;<span class="type">int</span>&gt; f1 = task.<span class="built_in">get_future</span>();  <span class="comment">// 获取 future</span></span><br><span class="line">    std::<span class="built_in">thread</span>(std::<span class="built_in">move</span>(task)).<span class="built_in">detach</span>(); <span class="comment">// 在线程上运行</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 来自 async() 的 future</span></span><br><span class="line">    std::future&lt;<span class="type">int</span>&gt; f2 = std::<span class="built_in">async</span>(std::launch::async, [](){ <span class="keyword">return</span> <span class="number">8</span>; });</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 来自 promise 的 future</span></span><br><span class="line">    std::promise&lt;<span class="type">int</span>&gt; p;</span><br><span class="line">    std::future&lt;<span class="type">int</span>&gt; f3 = p.<span class="built_in">get_future</span>();</span><br><span class="line">    std::<span class="built_in">thread</span>( [&amp;p]{ p.<span class="built_in">set_value_at_thread_exit</span>(<span class="number">9</span>); }).<span class="built_in">detach</span>();</span><br><span class="line"></span><br><span class="line">    std::cout &lt;&lt; <span class="string">"Waiting..."</span> &lt;&lt; std::flush;</span><br><span class="line">    f1.<span class="built_in">wait</span>();</span><br><span class="line">    f2.<span class="built_in">wait</span>();</span><br><span class="line">    f3.<span class="built_in">wait</span>();</span><br><span class="line">    std::cout &lt;&lt; <span class="string">"Done!\nResults are: "</span></span><br><span class="line">              &lt;&lt; f1.<span class="built_in">get</span>() &lt;&lt; <span class="string">' '</span> &lt;&lt; f2.<span class="built_in">get</span>() &lt;&lt; <span class="string">' '</span> &lt;&lt; f3.<span class="built_in">get</span>() &lt;&lt; <span class="string">'\n'</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><code>std::async</code></p>
+<p>最简单的异步任务使用</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">std::launch::async // 运行新线程, 以异步执行任务</span><br><span class="line">std::launch::deferred // 调用方线程上首次请求其结果时执行任务（惰性求值）</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">// 马上开始异步任务</span></span><br><span class="line">std::future&lt;<span class="type">int</span>&gt; f2 = std::<span class="built_in">async</span>(std::launch::async, [](){ <span class="keyword">return</span> <span class="number">8</span>; });</span><br><span class="line">f2.<span class="built_in">wait</span>(); <span class="comment">// 阻塞至结果变得可用</span></span><br><span class="line"><span class="type">int</span> result = f2.<span class="built_in">get</span>(); <span class="comment">// 获取结果</span></span><br></pre></td></tr></tbody></table></figure>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
+      <categories>
+        <category>C++</category>
+      </categories>
+      <tags>
+        <tag>C++</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>C++11 中的默认函数控制 delete 和 default</title>
+    <url>/posts/be0f7d71/</url>
+    <content><![CDATA[<p>delete 和 default 在 C++ 中用于显式控制默认函数的生成情况，
+我们需要知道 C++ 编译器到底干了些什么</p>
+<span id="more"></span>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> _CRT_SECURE_NO_WARNINGS</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;map&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">//c++11 类默认函数的控制："=default" 和 "=delete"函数</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">C++ 的类有四类特殊成员函数, 它们分别是：默认构造函数、析构函数、拷贝构造函数以及拷贝赋值运算符.</span></span><br><span class="line"><span class="comment">这些类的特殊成员函数负责创建、初始化、销毁, 或者拷贝类的对象.</span></span><br><span class="line"><span class="comment">如果程序员没有显式地为一个类定义某个特殊成员函数, 而又需要用到该特殊成员函数时, 则编译器会隐式的为这个类生成一个默认的特殊成员函数.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// C++11 标准引入了一个新特性："=default"函数. 程序员只需在函数声明后加上“=default;”, 就可将该函数声明为 "=default"函数, 编译器将为显式声明的 "=default"函数自动生成函数体.</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">X</span>() = <span class="keyword">default</span>; <span class="comment">//该函数比用户自己定义的默认构造函数获得更高的代码效率</span></span><br><span class="line">    <span class="built_in">X</span>(<span class="type">int</span> i)</span><br><span class="line">    {</span><br><span class="line">        a = i;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="type">int</span> a;</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line">X obj;</span><br><span class="line"></span><br><span class="line"><span class="comment">// "=default"函数特性仅适用于类的特殊成员函数, 且该特殊成员函数没有默认参数.</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X1</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">f</span><span class="params">()</span> </span>= <span class="keyword">default</span>;      <span class="comment">// err , 函数 f() 非类 X 的特殊成员函数</span></span><br><span class="line">    <span class="built_in">X1</span>(<span class="type">int</span>, <span class="type">int</span>) = <span class="keyword">default</span>;  <span class="comment">// err , 构造函数 X1(int, int) 非 X 的特殊成员函数</span></span><br><span class="line">    <span class="built_in">X1</span>(<span class="type">int</span> = <span class="number">1</span>) = <span class="keyword">default</span>;   <span class="comment">// err , 默认构造函数 X1(int=1) 含有默认参数</span></span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="comment">// "=default"函数既可以在类体里（inline）定义, 也可以在类体外（out-of-line）定义.</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X2</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">X2</span>() = <span class="keyword">default</span>; <span class="comment">//Inline defaulted 默认构造函数</span></span><br><span class="line">    <span class="built_in">X2</span>(<span class="type">const</span> X&amp;);</span><br><span class="line">    X2&amp; <span class="keyword">operator</span> = (<span class="type">const</span> X&amp;);</span><br><span class="line">    ~<span class="built_in">X2</span>() = <span class="keyword">default</span>;  <span class="comment">//Inline defaulted 析构函数</span></span><br><span class="line">};</span><br><span class="line"></span><br><span class="line">X2::<span class="built_in">X2</span>(<span class="type">const</span> X&amp;) = <span class="keyword">default</span>;  <span class="comment">//Out-of-line defaulted 拷贝构造函数</span></span><br><span class="line">X2&amp; X2::<span class="keyword">operator</span>= (<span class="type">const</span> X2&amp;) = <span class="keyword">default</span>;   <span class="comment">//Out-of-line defaulted  拷贝赋值操作符</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 为了能够让程序员显式的禁用某个函数, C++11 标准引入了一个新特性："=delete"函数. 程序员只需在函数声明后上“=delete;”, 就可将该函数禁用.</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X3</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">X3</span>();</span><br><span class="line">    <span class="built_in">X3</span>(<span class="type">const</span> X3&amp;) = <span class="keyword">delete</span>;  <span class="comment">// 声明拷贝构造函数为 deleted 函数</span></span><br><span class="line">    X3&amp; <span class="keyword">operator</span> = (<span class="type">const</span> X3 &amp;) = <span class="keyword">delete</span>; <span class="comment">// 声明拷贝赋值操作符为 deleted 函数</span></span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="comment">// "=delete"函数特性还可用于禁用类的某些转换构造函数, 从而避免不期望的类型转换</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X4</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">X4</span>(<span class="type">double</span>)</span><br><span class="line">    {</span><br><span class="line"></span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="built_in">X4</span>(<span class="type">int</span>) = <span class="keyword">delete</span>;</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="comment">// "=delete"函数特性还可以用来禁用某些用户自定义的类的 new 操作符, 从而避免在自由存储区创建类的对象</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X5</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> *<span class="keyword">operator</span> <span class="title">new</span><span class="params">(<span class="type">size_t</span>)</span> </span>= <span class="keyword">delete</span>;</span><br><span class="line">    <span class="type">void</span> *<span class="keyword">operator</span> <span class="keyword">new</span>[](<span class="type">size_t</span>) = <span class="keyword">delete</span>;</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">mytest</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">    X4 obj1;</span><br><span class="line">    X4 obj2=obj1;   <span class="comment">// 错误, 拷贝构造函数被禁用</span></span><br><span class="line"></span><br><span class="line">    X4 obj3;</span><br><span class="line">    obj3=obj1;     <span class="comment">// 错误, 拷贝赋值操作符被禁用</span></span><br><span class="line"></span><br><span class="line">    X5 *pa = <span class="keyword">new</span> X5;      <span class="comment">// 错误, new 操作符被禁用</span></span><br><span class="line">    X5 *pb = <span class="keyword">new</span> X5[<span class="number">10</span>];  <span class="comment">// 错误, new[] 操作符被禁用</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">    <span class="built_in">mytest</span>();</span><br><span class="line"></span><br><span class="line">    <span class="built_in">system</span>(<span class="string">"pause"</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br><span class="line"></span><br></pre></td></tr></tbody></table></figure>
 <script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
       <categories>
         <category>C++</category>
@@ -862,32 +862,6 @@ malloc 实现原理</a></p>
 C++11 中 auto 和 decltype 知识点</a></p>
 <p>如果有任何问题或想法，可以 <strong>点此留言</strong> ,
 我会尽快回复哒！欢迎小伙伴们踊跃留言，希望这里是大家交流互通的平台～</p>
-<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
-      <categories>
-        <category>C++</category>
-      </categories>
-      <tags>
-        <tag>C++</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>C++ 不定参数到 lambda 的传递</title>
-    <url>/posts/15ddce4e/</url>
-    <content><![CDATA[<p>使用 不定参数列表传递到 lambda 中总是报错，这里记录一下正确用法</p>
-<span id="more"></span>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">class</span> T, <span class="keyword">class</span>... Args&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">ObjectPool::SetType</span><span class="params">(std::string type, Args&amp;&amp;... args)</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">    m_mapAlloc[type].m_construct = [&amp; args...](IRecyclable* p) {</span><br><span class="line">        std::allocator&lt;T&gt; alloc;</span><br><span class="line">        std::allocator_traits&lt;std::allocator&lt;T&gt;&gt; traits;</span><br><span class="line">        traits.<span class="built_in">construct</span>(alloc, <span class="built_in">static_cast</span>&lt;T*&gt;(p), args...);</span><br><span class="line">    };</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>以上代码是正确的使用方法，对于不定参数
-<code>Args&amp;&amp;... args</code> 在函数中使用时一定都是带上
-<code>...</code> 使用的</p>
-<p>刚开始报错就是我在 lambda 捕获列表中一直写的是
-<code>[&amp;args]</code>, 而且后面传入 construct 函数时也需要使用
-<code>args...</code> 或者使用 <code>std::move(args)...</code></p>
-<p>关于 lambda 捕获，可以参考 <a href="https://zh.cppreference.com/w/cpp/language/lambda">Lambda 表达式
-(C++11 起) - cppreference.com</a></p>
-<p>关于 不定参数，可以参考 [<a href="https://zh.cppreference.com/w/cpp/language/parameter_pack">形参包
-- cppreference.com</a>]</p>
-<p>包展开:</p>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="built_in">f</span>(&amp;args...); <span class="comment">// 展开成 f(&amp;E1, &amp;E2, &amp;E3)</span></span><br><span class="line"><span class="built_in">f</span>(n, ++args...); <span class="comment">// 展开成 f(n, ++E1, ++E2, ++E3);</span></span><br><span class="line"><span class="built_in">f</span>(++args..., n); <span class="comment">// 展开成 f(++E1, ++E2, ++E3, n);</span></span><br><span class="line"><span class="built_in">f</span>(<span class="built_in">const_cast</span>&lt;<span class="type">const</span> Args*&gt;(&amp;args)...);</span><br><span class="line"><span class="comment">// f(const_cast&lt;const E1*&gt;(&amp;X1), const_cast&lt;const E2*&gt;(&amp;X2), const_cast&lt;const E3*&gt;(&amp;X3))</span></span><br><span class="line"><span class="built_in">f</span>(<span class="built_in">h</span>(args...) + args...); <span class="comment">// 展开成</span></span><br><span class="line"><span class="comment">// f(h(E1,E2,E3) + E1, h(E1,E2,E3) + E2, h(E1,E2,E3) + E3)</span></span><br></pre></td></tr></tbody></table></figure>
 <script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
       <categories>
         <category>C++</category>
@@ -1349,6 +1323,32 @@ set 类似</li>
       </tags>
   </entry>
   <entry>
+    <title>C++ 不定参数到 lambda 的传递</title>
+    <url>/posts/15ddce4e/</url>
+    <content><![CDATA[<p>使用 不定参数列表传递到 lambda 中总是报错，这里记录一下正确用法</p>
+<span id="more"></span>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">class</span> T, <span class="keyword">class</span>... Args&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">ObjectPool::SetType</span><span class="params">(std::string type, Args&amp;&amp;... args)</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">    m_mapAlloc[type].m_construct = [&amp; args...](IRecyclable* p) {</span><br><span class="line">        std::allocator&lt;T&gt; alloc;</span><br><span class="line">        std::allocator_traits&lt;std::allocator&lt;T&gt;&gt; traits;</span><br><span class="line">        traits.<span class="built_in">construct</span>(alloc, <span class="built_in">static_cast</span>&lt;T*&gt;(p), args...);</span><br><span class="line">    };</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>以上代码是正确的使用方法，对于不定参数
+<code>Args&amp;&amp;... args</code> 在函数中使用时一定都是带上
+<code>...</code> 使用的</p>
+<p>刚开始报错就是我在 lambda 捕获列表中一直写的是
+<code>[&amp;args]</code>, 而且后面传入 construct 函数时也需要使用
+<code>args...</code> 或者使用 <code>std::move(args)...</code></p>
+<p>关于 lambda 捕获，可以参考 <a href="https://zh.cppreference.com/w/cpp/language/lambda">Lambda 表达式
+(C++11 起) - cppreference.com</a></p>
+<p>关于 不定参数，可以参考 [<a href="https://zh.cppreference.com/w/cpp/language/parameter_pack">形参包
+- cppreference.com</a>]</p>
+<p>包展开:</p>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="built_in">f</span>(&amp;args...); <span class="comment">// 展开成 f(&amp;E1, &amp;E2, &amp;E3)</span></span><br><span class="line"><span class="built_in">f</span>(n, ++args...); <span class="comment">// 展开成 f(n, ++E1, ++E2, ++E3);</span></span><br><span class="line"><span class="built_in">f</span>(++args..., n); <span class="comment">// 展开成 f(++E1, ++E2, ++E3, n);</span></span><br><span class="line"><span class="built_in">f</span>(<span class="built_in">const_cast</span>&lt;<span class="type">const</span> Args*&gt;(&amp;args)...);</span><br><span class="line"><span class="comment">// f(const_cast&lt;const E1*&gt;(&amp;X1), const_cast&lt;const E2*&gt;(&amp;X2), const_cast&lt;const E3*&gt;(&amp;X3))</span></span><br><span class="line"><span class="built_in">f</span>(<span class="built_in">h</span>(args...) + args...); <span class="comment">// 展开成</span></span><br><span class="line"><span class="comment">// f(h(E1,E2,E3) + E1, h(E1,E2,E3) + E2, h(E1,E2,E3) + E3)</span></span><br></pre></td></tr></tbody></table></figure>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
+      <categories>
+        <category>C++</category>
+      </categories>
+      <tags>
+        <tag>C++</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>C++ 中 const 与 constexpr 的区别</title>
     <url>/posts/106f98c5/</url>
     <content><![CDATA[<p>原文地址: <a href="https://www.cnblogs.com/fortunely/p/14550145.html">const 和 constexpr 区别与联系</a></p>
@@ -1619,76 +1619,6 @@ static 局部变量下次再访问还是上次保留的值</li>
       </tags>
   </entry>
   <entry>
-    <title>C++ 中的声明与定义关键字</title>
-    <url>/posts/45070312/</url>
-    <content><![CDATA[<p>记录 C++ 中一些常见的声明与定义的关键字作用</p>
-<span id="more"></span>
-<h2 id="static-声明">static 声明</h2>
-<p>static 修饰类成员时，表示成员仅属于类，不属于实例；</p>
-<p>并且 static 修饰的类成员不能直接指定类内初始值，除非为 const;</p>
-<p>而且必须在类外初始化，初始化时不能再次写 static</p>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> {</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">// static int num = 0; // 报错</span></span><br><span class="line">    <span class="type">static</span> <span class="type">const</span> <span class="type">int</span> size = <span class="number">20</span>; <span class="comment">// 正确, 若类外再次初始化则重复定义</span></span><br><span class="line">    <span class="type">static</span> <span class="type">int</span> count; <span class="comment">// 如果类外没有初始化, 则编译出错</span></span><br><span class="line">};</span><br><span class="line"><span class="comment">// const int A::size = 20; // 不能重复定义, 类内初始值与类外初始化只能有一个</span></span><br><span class="line"><span class="type">int</span> A::count = <span class="number">30</span>; <span class="comment">// 类外初始化</span></span><br></pre></td></tr></tbody></table></figure>
-<h2 id="inline-定义-声明">inline 定义 (声明)</h2>
-<p>inline 只是给编译器的处理建议，编译器可以自行选择，
-如果函数中出现 switch, 循环，递归，或者有函数指针对该函数的调用，
-编译器会忽略 inline 建议</p>
-<p>inline 函数在哪里声明就在哪里实现</p>
-<p>inline 函数的声明和实现应该放在头文件中，
-应该在函数实现的地方加上 inline; 对于声明的地方是否加上 inline,
-貌似并没有影响</p>
-<h2 id="virtual-声明">virtual 声明</h2>
-<p>仅在函数声明时使用，函数定义时再加 virtual 会报错</p>
-<p>当一个成员函数被声明为 virtual 之后，
-其子类中相同签名的函数自动成为虚函数，即使子类没有显式写上 virtual,
-不过为了阅读清晰，子类中也应该显式加上 virtual 声明</p>
-<h2 id="const-声明-定义">const 声明 + 定义</h2>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">test</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">test</span><span class="params">()</span></span>;</span><br><span class="line"></span><br></pre></td></tr></tbody></table></figure>
-<p>上面两个成员函数可以同时存在，const 对象调用只能调用 const 的成员函数，
-而非 const 对象在两种函数都存在时调用不带 const 的版本，
-如果只有 const 版本也可以调用不会报错</p>
-<p>所以函数后加 const 与不加 const 是两个不同函数，
-声明和定义时都要表述清楚</p>
-<h2 id="final-声明">final 声明</h2>
-<p>C++ 11 新增关键字，用于阻止成员函数被重写，或者阻止类继承；</p>
-<p>只能声明时使用，定义处使用报错</p>
-<p>用在虚函数之后，表示在之后的子类中，不能重写该函数</p>
-<p>用在类名之后，表示该类不可以被继承</p>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> <span class="keyword">final</span> {}; <span class="comment">// 表示A类不能被继承</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">B</span>: <span class="keyword">public</span> A {}; <span class="comment">// 编译报错</span></span><br></pre></td></tr></tbody></table></figure>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> : <span class="keyword">public</span> Base{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">show</span><span class="params">()</span> <span class="keyword">override</span> <span class="keyword">final</span> </span>{} <span class="comment">// 从父类继承而来, 但不允许子类重写</span></span><br><span class="line">};</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">B</span> : <span class="keyword">public</span> A {</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">show</span><span class="params">()</span> </span>{} <span class="comment">// 编译报错, 不允许重写</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">special</span><span class="params">()</span> <span class="keyword">final</span> </span>{} <span class="comment">// 不允许子类重写</span></span><br><span class="line">};</span><br></pre></td></tr></tbody></table></figure>
-<h2 id="override-声明">override 声明</h2>
-<p>C++ 11 新增关键字，用于子类中显式说明一个函数是重写父类函数，
-编译器可以检查错误</p>
-<p>只能声明时使用，定义处使用报错</p>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> {</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">show</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">};</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">B</span> : <span class="keyword">public</span> A {</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">// 如果没有override, 这段错误代码会编译通过</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">sh0w</span><span class="params">()</span> <span class="keyword">override</span></span>; <span class="comment">// 报错, 没有sh0w函数可以重写, 让编译器检查错误</span></span><br><span class="line">};</span><br></pre></td></tr></tbody></table></figure>
-<h2 id="default-声明">default 声明</h2>
-<p>C++ 11 新增，表示类的特殊函数使用默认实现</p>
-<p>特殊函数:
-默认构造函数、复制 / 移动构造函数、复制 / 移动赋值运算符和析构函数</p>
-<p>默认构造函数是没有参数的</p>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> {</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">A</span>()                         = <span class="keyword">default</span>; <span class="comment">// 默认构造</span></span><br><span class="line">    <span class="built_in">A</span>(<span class="type">const</span> A&amp; a)               = <span class="keyword">default</span>; <span class="comment">// 复制构造</span></span><br><span class="line">    <span class="built_in">A</span>(A&amp;&amp; a)                    = <span class="keyword">default</span>; <span class="comment">// 移动构造</span></span><br><span class="line">    <span class="keyword">virtual</span> ~<span class="built_in">A</span>()                = <span class="keyword">default</span>; <span class="comment">// 析构函数</span></span><br><span class="line">    A&amp; <span class="keyword">operator</span>=(<span class="type">const</span> A&amp; a)    = <span class="keyword">default</span>; <span class="comment">// 复制赋值 (默认实现为浅拷贝)</span></span><br><span class="line">    A&amp; <span class="keyword">operator</span>=(A&amp;&amp; a)         = <span class="keyword">default</span>; <span class="comment">// 移动赋值 (浅拷贝)</span></span><br><span class="line">};</span><br></pre></td></tr></tbody></table></figure>
-<h2 id="delete-声明">delete 声明</h2>
-<p>C++ 11 新增 表示删除默认提供的特殊函数，禁止默认操作</p>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> {</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">A</span>(<span class="type">const</span> A&amp; a) = <span class="keyword">delete</span>; <span class="comment">// 禁止复制构造</span></span><br><span class="line">};</span><br><span class="line">A a;</span><br><span class="line"><span class="comment">// A b(a); // 报错, 禁止</span></span><br><span class="line"><span class="comment">// A b = a; // 报错, 禁止</span></span><br><span class="line">A b;</span><br><span class="line">b = a; <span class="comment">// 调用了默认赋值函数, 没有delete, 允许; 浅复制</span></span><br></pre></td></tr></tbody></table></figure>
-<h2 id="explicit-声明">explicit 声明</h2>
-<p>仅声明，函数外写会报错</p>
-<p>表示构造函数必须显式调用，而不能隐式转换</p>
-<p>C++ 中的 explicit 关键字只能用于修饰只有一个参数的类构造函数 (或者除了第一个参数外，
-其它参数有默认值的构造) C++11 后已经可以修饰任意参数的构造函数，
-它的作用是表明该构造函数是显示的，而非隐式的，
-跟它相对应的另一个关键字是 implicit,
-意思是隐藏的，类构造函数默认情况下即声明为 implicit (隐式)</p>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> {</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">A</span>(<span class="type">int</span> i) {}</span><br><span class="line">    <span class="built_in">A</span>(<span class="type">int</span> i, <span class="type">int</span> j) {}</span><br><span class="line">};</span><br><span class="line">A a = <span class="number">30</span>; <span class="comment">// 正确, 隐式调用构造函数, 自动隐式转换</span></span><br><span class="line">A b = {<span class="number">1</span>, <span class="number">2</span>}; <span class="comment">// 正确, 复制列表初始化</span></span><br></pre></td></tr></tbody></table></figure>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> {</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="title">A</span><span class="params">(<span class="type">int</span> i)</span> </span>{} <span class="comment">// 显式构造函数, 不能隐式调用</span></span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="title">A</span><span class="params">(<span class="type">int</span> i, <span class="type">int</span> j)</span> </span>{}</span><br><span class="line">}</span><br><span class="line"><span class="function">A <span class="title">a</span><span class="params">(<span class="number">30</span>)</span></span>; <span class="comment">// 显式调用, 正确</span></span><br><span class="line"><span class="comment">// A a = 30; // 隐式调用, 错误</span></span><br><span class="line"><span class="comment">// A a = {2, 3}; // 隐式调用, 错误</span></span><br></pre></td></tr></tbody></table></figure>
-<p>详情: <a href="/posts/de05b48b/" title="C++中的explicit关键字">C++ 中的 explicit 关键字</a></p>
-<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
-      <categories>
-        <category>C++</category>
-      </categories>
-      <tags>
-        <tag>C++</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>C++ 内存复用_内存池_allocator</title>
     <url>/posts/8fc5d182/</url>
     <content><![CDATA[<p>最近几天写一些服务端的基础小工具学习到不少内容，
@@ -1751,6 +1681,76 @@ delete 会先调用析构函数，之后释放内存</p>
 <figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span>, <span class="type">char</span>**)</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">    ObjectPool::Instance.<span class="built_in">SetType</span>&lt;Test&gt;(std::<span class="built_in">string</span>(<span class="string">"test"</span>));</span><br><span class="line">    Test* t1 = (Test*)ObjectPool::Instance.<span class="built_in">GetObj</span>(<span class="string">"test"</span>);</span><br><span class="line">    Test* t2 = (Test*)ObjectPool::Instance.<span class="built_in">GetObj</span>(<span class="string">"test"</span>);</span><br><span class="line">    t1-&gt;<span class="built_in">Show</span>();</span><br><span class="line">    t2-&gt;<span class="built_in">Show</span>();</span><br><span class="line">    ObjectPool::Instance.<span class="built_in">ReturnObj</span>((IRecyclable*)t1);</span><br><span class="line">    Test* t3 = (Test*)ObjectPool::Instance.<span class="built_in">GetObj</span>(<span class="string">"test"</span>);</span><br><span class="line">    t3-&gt;<span class="built_in">Show</span>();</span><br><span class="line">    ObjectPool::Instance.<span class="built_in">ReturnObj</span>((IRecyclable*)t2);</span><br><span class="line">    ObjectPool::Instance.<span class="built_in">ReturnObj</span>((IRecyclable*)t3);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
 <p>测试结果:</p>
 <figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">Test Constructor() this=0x8037fe0</span><br><span class="line">OnUse this=0x8037fe0</span><br><span class="line">Test Constructor() this=0x8038430</span><br><span class="line">OnUse this=0x8038430</span><br><span class="line">Test show x(1), str(sssaaa1)</span><br><span class="line">Test show x(2), str(sssaaa2)</span><br><span class="line">OnRecycle this=0x8037fe0</span><br><span class="line">Test Destructor() this=0x8037fe0</span><br><span class="line">Test Constructor() this=0x8037fe0</span><br><span class="line">OnUse this=0x8037fe0</span><br><span class="line">Test show x(3), str(sssaaa3)</span><br><span class="line">OnRecycle this=0x8038430</span><br><span class="line">Test Destructor() this=0x8038430</span><br><span class="line">OnRecycle this=0x8037fe0</span><br><span class="line">Test Destructor() this=0x8037fe0</span><br></pre></td></tr></tbody></table></figure>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
+      <categories>
+        <category>C++</category>
+      </categories>
+      <tags>
+        <tag>C++</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>C++ 中的声明与定义关键字</title>
+    <url>/posts/45070312/</url>
+    <content><![CDATA[<p>记录 C++ 中一些常见的声明与定义的关键字作用</p>
+<span id="more"></span>
+<h2 id="static-声明">static 声明</h2>
+<p>static 修饰类成员时，表示成员仅属于类，不属于实例；</p>
+<p>并且 static 修饰的类成员不能直接指定类内初始值，除非为 const;</p>
+<p>而且必须在类外初始化，初始化时不能再次写 static</p>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> {</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">// static int num = 0; // 报错</span></span><br><span class="line">    <span class="type">static</span> <span class="type">const</span> <span class="type">int</span> size = <span class="number">20</span>; <span class="comment">// 正确, 若类外再次初始化则重复定义</span></span><br><span class="line">    <span class="type">static</span> <span class="type">int</span> count; <span class="comment">// 如果类外没有初始化, 则编译出错</span></span><br><span class="line">};</span><br><span class="line"><span class="comment">// const int A::size = 20; // 不能重复定义, 类内初始值与类外初始化只能有一个</span></span><br><span class="line"><span class="type">int</span> A::count = <span class="number">30</span>; <span class="comment">// 类外初始化</span></span><br></pre></td></tr></tbody></table></figure>
+<h2 id="inline-定义-声明">inline 定义 (声明)</h2>
+<p>inline 只是给编译器的处理建议，编译器可以自行选择，
+如果函数中出现 switch, 循环，递归，或者有函数指针对该函数的调用，
+编译器会忽略 inline 建议</p>
+<p>inline 函数在哪里声明就在哪里实现</p>
+<p>inline 函数的声明和实现应该放在头文件中，
+应该在函数实现的地方加上 inline; 对于声明的地方是否加上 inline,
+貌似并没有影响</p>
+<h2 id="virtual-声明">virtual 声明</h2>
+<p>仅在函数声明时使用，函数定义时再加 virtual 会报错</p>
+<p>当一个成员函数被声明为 virtual 之后，
+其子类中相同签名的函数自动成为虚函数，即使子类没有显式写上 virtual,
+不过为了阅读清晰，子类中也应该显式加上 virtual 声明</p>
+<h2 id="const-声明-定义">const 声明 + 定义</h2>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">test</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">test</span><span class="params">()</span></span>;</span><br><span class="line"></span><br></pre></td></tr></tbody></table></figure>
+<p>上面两个成员函数可以同时存在，const 对象调用只能调用 const 的成员函数，
+而非 const 对象在两种函数都存在时调用不带 const 的版本，
+如果只有 const 版本也可以调用不会报错</p>
+<p>所以函数后加 const 与不加 const 是两个不同函数，
+声明和定义时都要表述清楚</p>
+<h2 id="final-声明">final 声明</h2>
+<p>C++ 11 新增关键字，用于阻止成员函数被重写，或者阻止类继承；</p>
+<p>只能声明时使用，定义处使用报错</p>
+<p>用在虚函数之后，表示在之后的子类中，不能重写该函数</p>
+<p>用在类名之后，表示该类不可以被继承</p>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> <span class="keyword">final</span> {}; <span class="comment">// 表示A类不能被继承</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">B</span>: <span class="keyword">public</span> A {}; <span class="comment">// 编译报错</span></span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> : <span class="keyword">public</span> Base{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">show</span><span class="params">()</span> <span class="keyword">override</span> <span class="keyword">final</span> </span>{} <span class="comment">// 从父类继承而来, 但不允许子类重写</span></span><br><span class="line">};</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">B</span> : <span class="keyword">public</span> A {</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">show</span><span class="params">()</span> </span>{} <span class="comment">// 编译报错, 不允许重写</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">special</span><span class="params">()</span> <span class="keyword">final</span> </span>{} <span class="comment">// 不允许子类重写</span></span><br><span class="line">};</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="override-声明">override 声明</h2>
+<p>C++ 11 新增关键字，用于子类中显式说明一个函数是重写父类函数，
+编译器可以检查错误</p>
+<p>只能声明时使用，定义处使用报错</p>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> {</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">show</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">};</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">B</span> : <span class="keyword">public</span> A {</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">// 如果没有override, 这段错误代码会编译通过</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">sh0w</span><span class="params">()</span> <span class="keyword">override</span></span>; <span class="comment">// 报错, 没有sh0w函数可以重写, 让编译器检查错误</span></span><br><span class="line">};</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="default-声明">default 声明</h2>
+<p>C++ 11 新增，表示类的特殊函数使用默认实现</p>
+<p>特殊函数:
+默认构造函数、复制 / 移动构造函数、复制 / 移动赋值运算符和析构函数</p>
+<p>默认构造函数是没有参数的</p>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> {</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">A</span>()                         = <span class="keyword">default</span>; <span class="comment">// 默认构造</span></span><br><span class="line">    <span class="built_in">A</span>(<span class="type">const</span> A&amp; a)               = <span class="keyword">default</span>; <span class="comment">// 复制构造</span></span><br><span class="line">    <span class="built_in">A</span>(A&amp;&amp; a)                    = <span class="keyword">default</span>; <span class="comment">// 移动构造</span></span><br><span class="line">    <span class="keyword">virtual</span> ~<span class="built_in">A</span>()                = <span class="keyword">default</span>; <span class="comment">// 析构函数</span></span><br><span class="line">    A&amp; <span class="keyword">operator</span>=(<span class="type">const</span> A&amp; a)    = <span class="keyword">default</span>; <span class="comment">// 复制赋值 (默认实现为浅拷贝)</span></span><br><span class="line">    A&amp; <span class="keyword">operator</span>=(A&amp;&amp; a)         = <span class="keyword">default</span>; <span class="comment">// 移动赋值 (浅拷贝)</span></span><br><span class="line">};</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="delete-声明">delete 声明</h2>
+<p>C++ 11 新增 表示删除默认提供的特殊函数，禁止默认操作</p>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> {</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">A</span>(<span class="type">const</span> A&amp; a) = <span class="keyword">delete</span>; <span class="comment">// 禁止复制构造</span></span><br><span class="line">};</span><br><span class="line">A a;</span><br><span class="line"><span class="comment">// A b(a); // 报错, 禁止</span></span><br><span class="line"><span class="comment">// A b = a; // 报错, 禁止</span></span><br><span class="line">A b;</span><br><span class="line">b = a; <span class="comment">// 调用了默认赋值函数, 没有delete, 允许; 浅复制</span></span><br></pre></td></tr></tbody></table></figure>
+<h2 id="explicit-声明">explicit 声明</h2>
+<p>仅声明，函数外写会报错</p>
+<p>表示构造函数必须显式调用，而不能隐式转换</p>
+<p>C++ 中的 explicit 关键字只能用于修饰只有一个参数的类构造函数 (或者除了第一个参数外，
+其它参数有默认值的构造) C++11 后已经可以修饰任意参数的构造函数，
+它的作用是表明该构造函数是显示的，而非隐式的，
+跟它相对应的另一个关键字是 implicit,
+意思是隐藏的，类构造函数默认情况下即声明为 implicit (隐式)</p>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> {</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">A</span>(<span class="type">int</span> i) {}</span><br><span class="line">    <span class="built_in">A</span>(<span class="type">int</span> i, <span class="type">int</span> j) {}</span><br><span class="line">};</span><br><span class="line">A a = <span class="number">30</span>; <span class="comment">// 正确, 隐式调用构造函数, 自动隐式转换</span></span><br><span class="line">A b = {<span class="number">1</span>, <span class="number">2</span>}; <span class="comment">// 正确, 复制列表初始化</span></span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> {</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="title">A</span><span class="params">(<span class="type">int</span> i)</span> </span>{} <span class="comment">// 显式构造函数, 不能隐式调用</span></span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="title">A</span><span class="params">(<span class="type">int</span> i, <span class="type">int</span> j)</span> </span>{}</span><br><span class="line">}</span><br><span class="line"><span class="function">A <span class="title">a</span><span class="params">(<span class="number">30</span>)</span></span>; <span class="comment">// 显式调用, 正确</span></span><br><span class="line"><span class="comment">// A a = 30; // 隐式调用, 错误</span></span><br><span class="line"><span class="comment">// A a = {2, 3}; // 隐式调用, 错误</span></span><br></pre></td></tr></tbody></table></figure>
+<p>详情: <a href="/posts/de05b48b/" title="C++中的explicit关键字">C++ 中的 explicit 关键字</a></p>
 <script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
       <categories>
         <category>C++</category>
@@ -2375,6 +2375,82 @@ Cpp 编写的函数库 (lib/dll/a/so), 也可以以 C 语言函数接口为标�
       </categories>
   </entry>
   <entry>
+    <title>函数调用约定</title>
+    <url>/posts/377a3f70/</url>
+    <content><![CDATA[<h2 id="函数调用约定分类">函数调用约定分类</h2>
+<p>函数调用约定（Calling
+Convention）是规定函数在栈上的参数传递和清理方式的约定。不同的编程语言和编译器可能使用不同的调用约定，主要有以下几种常见的函数调用约定：</p>
+<span id="more"></span>
+<ol type="1">
+<li><p><strong>StdCall（标准调用约定）</strong> ：</p>
+<ul>
+<li>参数由调用者在栈上<strong>顺序压入</strong>，由<strong>被调用函数负责清理栈</strong>。</li>
+<li><strong>函数名称在链接时由名称修饰器（name
+decoration）进行修饰，用于指定函数的参数数量和类型</strong>。可以支持函数重载</li>
+<li> Windows API 中的大部分函数使用标准调用约定。</li>
+</ul></li>
+<li><p><strong>Cdecl（C 调用约定）</strong> ：</p>
+<ul>
+<li>参数由调用者在栈上<strong>顺序压入</strong>，由<strong>调用者负责清理栈</strong>。</li>
+<li><strong>函数名称在链接时不进行修饰</strong>。不支持函数重载</li>
+<li>在 C 和 C++ 中常用的默认调用约定。</li>
+</ul></li>
+<li><p><strong>FastCall（快速调用约定）</strong> ：</p>
+<ul>
+<li>将一些参数（通常是寄存器数量限制内的参数）存放在寄存器中传递，剩余的参数由调用者在栈上压入。</li>
+<li>寄存器用于存储参数的寄存器数量和顺序由编译器约定。</li>
+<li>函数名称在链接时不进行修饰。</li>
+<li>可以提高函数调用的性能。</li>
+</ul></li>
+<li><p><strong>ThisCall（成员函数调用约定）</strong> ：</p>
+<ul>
+<li>参数由调用者在栈上顺序压入，但第一个参数（this 指针）通过寄存器传递。</li>
+<li>其余参数由调用者负责清理栈。</li>
+<li>常用于非静态成员函数，this 指针通过 ECX 寄存器传递。</li>
+</ul></li>
+<li><p><strong>Winapi（Windows API 调用约定）</strong> ：</p>
+<ul>
+<li>与 StdCall 相同，参数由调用者在栈上顺序压入，由被调用函数负责清理栈。</li>
+<li>函数名称在链接时不进行修饰。</li>
+<li>在 Windows API 中，Winapi 通常是 StdCall 的同义词。</li>
+</ul></li>
+<li><p><strong>Pascal（帕斯卡调用约定）</strong> ：</p>
+<ul>
+<li>参数由调用者在栈上逆序压入，由被调用函数负责清理栈。</li>
+<li>函数名称在链接时不进行修饰。</li>
+<li>常用于 Delphi 等编程语言。</li>
+</ul></li>
+</ol>
+<p>选择适当的函数调用约定主要取决于编程语言、平台和编译器的要求。通常情况下，你无需显式指定函数的调用约定，编译器会根据语言和平台的规范自动选择合适的调用约定。但在某些情况下，例如与非托管代码交互或使用特定的编译器选项时，可能需要手动指定函数的调用约定。</p>
+<p>顺序压入（Arguments Pushed in Order）和逆序压入（Arguments Pushed in
+Reverse Order）是函数调用过程中参数在栈上的压入顺序。</p>
+<ol type="1">
+<li><strong>顺序压入</strong>：在顺序压入的调用约定中，函数参数按照从左到右的顺序依次压入栈中。也就是说，第一个参数被压入栈的位置最低，最后一个参数被压入栈的位置最高。这意味着栈的顶部是最后一个参数的位置。
+例如，假设有一个函数
+<code>void MyFunction(int a, int b, int c)</code>，使用顺序压入的调用约定时，参数
+<code>a</code> 会被首先压入栈，然后是参数 <code>b</code>，最后是参数
+<code>c</code>。在函数内部，通过访问栈上的相对偏移量，可以获取到相应的参数值。</li>
+<li><strong>逆序压入</strong>：在逆序压入的调用约定中，函数参数按照从右到左的顺序依次压入栈中。也就是说，第一个参数被压入栈的位置最高，最后一个参数被压入栈的位置最低。这意味着栈的顶部是第一个参数的位置。
+例如，假设有一个函数
+<code>void MyFunction(int a, int b, int c)</code>，使用逆序压入的调用约定时，参数
+<code>c</code> 会被首先压入栈，然后是参数 <code>b</code>，最后是参数
+<code>a</code>。在函数内部，通过访问栈上的相对偏移量，可以获取到相应的参数值。</li>
+</ol>
+<p>顺序压入和逆序压入是两种不同的参数传递方式，而具体使用哪种方式取决于函数调用约定的规定。不同的编程语言、平台和编译器可能使用不同的参数压入顺序。因此，在编写和调用函数时，需要了解所使用的编程语言和调用约定的规范，以正确地传递参数。</p>
+<h2 id="在c中指定函数的调用约定">在 C++ 中指定函数的调用约定</h2>
+<figure class="highlight cpp"><table><tbody><tr><td class="code"><pre><span class="line"><span class="function">__cdecl <span class="type">void</span> <span class="title">MyFunction</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span></span>;</span><br><span class="line"><span class="function">__stdcall <span class="type">void</span> <span class="title">MyFunction</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span></span>;</span><br><span class="line"><span class="function">__fastcall <span class="type">void</span> <span class="title">MyFunction</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span></span>;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MyClass</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">__thiscall <span class="type">void</span> <span class="title">MyMethod</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span></span>;</span><br><span class="line">};</span><br></pre></td></tr></tbody></table></figure>
+<p>在 C++
+源码中，可以使用一些特定的关键字和修饰符来表示一个函数是导出函数。具体的表示方式取决于所使用的编译器和平台。</p>
+<figure class="highlight cpp"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifdef</span> _WIN32</span></span><br><span class="line">    <span class="meta">#<span class="keyword">define</span> DLL_EXPORT __declspec(dllexport) <span class="comment">// Microsoft Visual C++ 编译器的扩展，用于指定一个函数是导出函数</span></span></span><br><span class="line">	<span class="meta">#<span class="keyword">define</span> DLL_IMPORT __declspec(dllimport)</span></span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">    <span class="meta">#<span class="keyword">define</span> DLL_EXPORT</span></span><br><span class="line">	<span class="meta">#<span class="keyword">define</span> DLL_IMPORT</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="function">DLL_EXPORT <span class="type">void</span> <span class="title">MyExportedFunction</span><span class="params">()</span></span>;</span><br></pre></td></tr></tbody></table></figure>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
+      <categories>
+        <category>C++</category>
+      </categories>
+      <tags>
+        <tag>C++</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>向量的点乘与叉乘</title>
     <url>/posts/700389e5/</url>
     <content><![CDATA[<p>基本的代数 / 图形学，向量运算的几何意义</p>
@@ -2492,6 +2568,93 @@ y\)</span> 和<span class="math inline"> \(\vec z\)</span> 同理</p>
       </categories>
   </entry>
   <entry>
+    <title>常用设计模式</title>
+    <url>/posts/364ea8cc/</url>
+    <content><![CDATA[<p>设计模式列表备忘</p>
+<span id="more"></span>
+<ul>
+<li>原则
+<ul>
+<li><strong>开闭原则</strong> (封装不变，开放变化) 也说成对扩展开放，
+对修改关闭</li>
+<li><strong>里氏替换</strong>
+(任何基类出现的地方一定可以用派生类替换)</li>
+<li><strong> 依赖倒置</strong> (针对接口编程，依赖于抽象)</li>
+<li><strong> 接口隔离</strong> (使用多个单一功能接口，
+比使用单个复杂接口好)</li>
+<li><strong> 迪米特法则</strong> (最少知道原则，
+一个实体应尽量少地与其他实体之间发生相互关联)</li>
+<li><strong> 合成复用</strong> (尽量使用组合，而不是使用继承)</li>
+</ul></li>
+<li> 池模式
+<ul>
+<li>对象池 / 内存池 (对象重复利用，减少内存的频繁申请与释放)</li>
+<li> 线程池</li>
+<li>连接池</li>
+</ul></li>
+<li>创建型
+<ul>
+<li>单例模式</li>
+<li>简单工厂方法 (一个方法，根据不同参数返回不同对象)</li>
+<li> 工厂模式 (每个工厂对应一种产品，
+利用一个工厂对象不断生成同类型产品)</li>
+<li> 抽象工厂模式 (一个抽象工厂提供多种产品接口，
+但每个产品的实际生产依赖不同的实际工厂对象生产的 "零件")</li>
+<li> 创建者模式 (分部分，逐步构造复杂对象的各个部分，
+最后调用一个 <code>build()</code> 方法构造出复杂对象)</li>
+<li> 原型模式</li>
+</ul></li>
+<li>结构型
+<ul>
+<li>适配器模式 (不同接口适配)</li>
+<li> 代理模式</li>
+<li>装饰器模式</li>
+<li>外观模式 (繁杂复杂接口封装为简单易用的接口)</li>
+<li> 桥接模式 (变化的不同维度分别拆分抽象，再组合起来。书本 1, 书本 2,
+颜色 1, 颜色 2, 不应该弄 4 种子类，而是 I 书本包含 I 颜色，书本有两种实现，
+颜色有两种实现)</li>
+<li> 组合模式 (整体与层次关系，单个对象与组合对象有一致接口。树状结构，
+由基本节点可以组合出枝节点，枝节点可以继续组合，
+且组合节点与基本节点有完全一样的接口，可以不做区分调用)</li>
+<li> 享元模式 (工厂模式该进，有点像对象池的意思，若需要大量相同子对象，
+可以在细粒度上构建共享资源，防止过多相同的内存开销；
+例如一些语言中的 String 池，相同字符串都指向内存同一地址，
+而不是新创建)</li>
+</ul></li>
+<li> 行为型
+<ul>
+<li>策略模式 (将处理方法抽象化，
+针对不同的选择传入不同的处理方法对象)</li>
+<li> 模板方法模式</li>
+<li>观察者模式 (订阅 - 通知)</li>
+<li> 中介者模式 (将多个对象互相复杂依赖改为星型结构，
+每个对象都只与中介者交互依赖)</li>
+<li> 状态模式 (将状态封装，对象具有状态，状态可转换，
+对象的相同接口在不同状态下有不同表现，接口实现可依赖于状态的实现)</li>
+<li> 责任链模式 (收到一个请求:
+IP 过滤 -&gt; 授权验证 -&gt; 日志记录 -&gt; 请求处理 -&gt; 页面渲染)</li>
+<li> 命令模式 (将控制 / 操作由接口调用改成封装成<code>命令对象</code> ,
+可以用于需要 操作历史 / 操作日志 / 撤销重做 的场景)</li>
+<li> 备忘录模式 (发起人，备忘录，管理者，
+只有发起人可以将自己内部状态存入备忘录对象，或者从中读取内部状态；
+管理者管理备忘录对象，但不能读取 / 操作备忘录对象内部内容；
+游戏角色在战斗失败后恢复到战前的状态)</li>
+<li> 迭代器模式 (iterator)</li>
+<li> 访问者模式 (数据对象的类很少改变，但经常需要在此对象上定义新的操作，
+定义访问者类封装了对数据类的执行算法，
+这样数据对象的执行算法可以随着访问者的改变而改变)</li>
+<li> 解释器模式 (符号解析)</li>
+</ul></li>
+</ul>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
+      <categories>
+        <category>数据结构&amp;设计模式</category>
+      </categories>
+      <tags>
+        <tag>设计模式</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>浮点数存储结构</title>
     <url>/posts/6c1bab40/</url>
     <content><![CDATA[<p>浮点数在内存中的存储结构</p>
@@ -2588,93 +2751,6 @@ M=0</p>
       </categories>
       <tags>
         <tag>浮点数</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>常用设计模式</title>
-    <url>/posts/364ea8cc/</url>
-    <content><![CDATA[<p>设计模式列表备忘</p>
-<span id="more"></span>
-<ul>
-<li>原则
-<ul>
-<li><strong>开闭原则</strong> (封装不变，开放变化) 也说成对扩展开放，
-对修改关闭</li>
-<li><strong>里氏替换</strong>
-(任何基类出现的地方一定可以用派生类替换)</li>
-<li><strong> 依赖倒置</strong> (针对接口编程，依赖于抽象)</li>
-<li><strong> 接口隔离</strong> (使用多个单一功能接口，
-比使用单个复杂接口好)</li>
-<li><strong> 迪米特法则</strong> (最少知道原则，
-一个实体应尽量少地与其他实体之间发生相互关联)</li>
-<li><strong> 合成复用</strong> (尽量使用组合，而不是使用继承)</li>
-</ul></li>
-<li> 池模式
-<ul>
-<li>对象池 / 内存池 (对象重复利用，减少内存的频繁申请与释放)</li>
-<li> 线程池</li>
-<li>连接池</li>
-</ul></li>
-<li>创建型
-<ul>
-<li>单例模式</li>
-<li>简单工厂方法 (一个方法，根据不同参数返回不同对象)</li>
-<li> 工厂模式 (每个工厂对应一种产品，
-利用一个工厂对象不断生成同类型产品)</li>
-<li> 抽象工厂模式 (一个抽象工厂提供多种产品接口，
-但每个产品的实际生产依赖不同的实际工厂对象生产的 "零件")</li>
-<li> 创建者模式 (分部分，逐步构造复杂对象的各个部分，
-最后调用一个 <code>build()</code> 方法构造出复杂对象)</li>
-<li> 原型模式</li>
-</ul></li>
-<li>结构型
-<ul>
-<li>适配器模式 (不同接口适配)</li>
-<li> 代理模式</li>
-<li>装饰器模式</li>
-<li>外观模式 (繁杂复杂接口封装为简单易用的接口)</li>
-<li> 桥接模式 (变化的不同维度分别拆分抽象，再组合起来。书本 1, 书本 2,
-颜色 1, 颜色 2, 不应该弄 4 种子类，而是 I 书本包含 I 颜色，书本有两种实现，
-颜色有两种实现)</li>
-<li> 组合模式 (整体与层次关系，单个对象与组合对象有一致接口。树状结构，
-由基本节点可以组合出枝节点，枝节点可以继续组合，
-且组合节点与基本节点有完全一样的接口，可以不做区分调用)</li>
-<li> 享元模式 (工厂模式该进，有点像对象池的意思，若需要大量相同子对象，
-可以在细粒度上构建共享资源，防止过多相同的内存开销；
-例如一些语言中的 String 池，相同字符串都指向内存同一地址，
-而不是新创建)</li>
-</ul></li>
-<li> 行为型
-<ul>
-<li>策略模式 (将处理方法抽象化，
-针对不同的选择传入不同的处理方法对象)</li>
-<li> 模板方法模式</li>
-<li>观察者模式 (订阅 - 通知)</li>
-<li> 中介者模式 (将多个对象互相复杂依赖改为星型结构，
-每个对象都只与中介者交互依赖)</li>
-<li> 状态模式 (将状态封装，对象具有状态，状态可转换，
-对象的相同接口在不同状态下有不同表现，接口实现可依赖于状态的实现)</li>
-<li> 责任链模式 (收到一个请求:
-IP 过滤 -&gt; 授权验证 -&gt; 日志记录 -&gt; 请求处理 -&gt; 页面渲染)</li>
-<li> 命令模式 (将控制 / 操作由接口调用改成封装成<code>命令对象</code> ,
-可以用于需要 操作历史 / 操作日志 / 撤销重做 的场景)</li>
-<li> 备忘录模式 (发起人，备忘录，管理者，
-只有发起人可以将自己内部状态存入备忘录对象，或者从中读取内部状态；
-管理者管理备忘录对象，但不能读取 / 操作备忘录对象内部内容；
-游戏角色在战斗失败后恢复到战前的状态)</li>
-<li> 迭代器模式 (iterator)</li>
-<li> 访问者模式 (数据对象的类很少改变，但经常需要在此对象上定义新的操作，
-定义访问者类封装了对数据类的执行算法，
-这样数据对象的执行算法可以随着访问者的改变而改变)</li>
-<li> 解释器模式 (符号解析)</li>
-</ul></li>
-</ul>
-<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
-      <categories>
-        <category>数据结构&amp;设计模式</category>
-      </categories>
-      <tags>
-        <tag>设计模式</tag>
       </tags>
   </entry>
   <entry>
