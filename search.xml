@@ -871,6 +871,32 @@ C++11 中 auto 和 decltype 知识点</a></p>
       </tags>
   </entry>
   <entry>
+    <title>C++ 不定参数到 lambda 的传递</title>
+    <url>/posts/15ddce4e/</url>
+    <content><![CDATA[<p>使用 不定参数列表传递到 lambda 中总是报错，这里记录一下正确用法</p>
+<span id="more"></span>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">class</span> T, <span class="keyword">class</span>... Args&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">ObjectPool::SetType</span><span class="params">(std::string type, Args&amp;&amp;... args)</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">    m_mapAlloc[type].m_construct = [&amp; args...](IRecyclable* p) {</span><br><span class="line">        std::allocator&lt;T&gt; alloc;</span><br><span class="line">        std::allocator_traits&lt;std::allocator&lt;T&gt;&gt; traits;</span><br><span class="line">        traits.<span class="built_in">construct</span>(alloc, <span class="built_in">static_cast</span>&lt;T*&gt;(p), args...);</span><br><span class="line">    };</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>以上代码是正确的使用方法，对于不定参数
+<code>Args&amp;&amp;... args</code> 在函数中使用时一定都是带上
+<code>...</code> 使用的</p>
+<p>刚开始报错就是我在 lambda 捕获列表中一直写的是
+<code>[&amp;args]</code>, 而且后面传入 construct 函数时也需要使用
+<code>args...</code> 或者使用 <code>std::move(args)...</code></p>
+<p>关于 lambda 捕获，可以参考 <a href="https://zh.cppreference.com/w/cpp/language/lambda">Lambda 表达式
+(C++11 起) - cppreference.com</a></p>
+<p>关于 不定参数，可以参考 [<a href="https://zh.cppreference.com/w/cpp/language/parameter_pack">形参包
+- cppreference.com</a>]</p>
+<p>包展开:</p>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="built_in">f</span>(&amp;args...); <span class="comment">// 展开成 f(&amp;E1, &amp;E2, &amp;E3)</span></span><br><span class="line"><span class="built_in">f</span>(n, ++args...); <span class="comment">// 展开成 f(n, ++E1, ++E2, ++E3);</span></span><br><span class="line"><span class="built_in">f</span>(++args..., n); <span class="comment">// 展开成 f(++E1, ++E2, ++E3, n);</span></span><br><span class="line"><span class="built_in">f</span>(<span class="built_in">const_cast</span>&lt;<span class="type">const</span> Args*&gt;(&amp;args)...);</span><br><span class="line"><span class="comment">// f(const_cast&lt;const E1*&gt;(&amp;X1), const_cast&lt;const E2*&gt;(&amp;X2), const_cast&lt;const E3*&gt;(&amp;X3))</span></span><br><span class="line"><span class="built_in">f</span>(<span class="built_in">h</span>(args...) + args...); <span class="comment">// 展开成</span></span><br><span class="line"><span class="comment">// f(h(E1,E2,E3) + E1, h(E1,E2,E3) + E2, h(E1,E2,E3) + E3)</span></span><br></pre></td></tr></tbody></table></figure>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
+      <categories>
+        <category>C++</category>
+      </categories>
+      <tags>
+        <tag>C++</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>C++11 新特性</title>
     <url>/posts/952ddb2b/</url>
     <content><![CDATA[<p>C++11 中的新特性概览</p>
@@ -1314,32 +1340,6 @@ set 类似</li>
 <p><a href="http://mp.weixin.qq.com/s?__biz=MzI3NjA1OTEzMg==&amp;mid=2247483840&amp;idx=1&amp;sn=48a5ba180c61877134344084e25d27f4&amp;chksm=eb7a0753dc0d8e450dcfe3a6d6b0405c043b60944173510836049802d48828e366d47d88674e&amp;scene=21#wechat_redirect">深入浅出虚拟内存</a></p>
 <p><a href="http://mp.weixin.qq.com/s?__biz=MzI3NjA1OTEzMg==&amp;mid=2247483823&amp;idx=1&amp;sn=732303e36464f0c9fb4bd75fa10ba4db&amp;chksm=eb7a073cdc0d8e2a6dca8babec94ce063ccab0c7832b9d85539357fe2da692fc6ad6cd5b938b&amp;scene=21#wechat_redirect">C++
 线程池的实现之格式修订版</a></p>
-<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
-      <categories>
-        <category>C++</category>
-      </categories>
-      <tags>
-        <tag>C++</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>C++ 不定参数到 lambda 的传递</title>
-    <url>/posts/15ddce4e/</url>
-    <content><![CDATA[<p>使用 不定参数列表传递到 lambda 中总是报错，这里记录一下正确用法</p>
-<span id="more"></span>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">class</span> T, <span class="keyword">class</span>... Args&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">ObjectPool::SetType</span><span class="params">(std::string type, Args&amp;&amp;... args)</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">    m_mapAlloc[type].m_construct = [&amp; args...](IRecyclable* p) {</span><br><span class="line">        std::allocator&lt;T&gt; alloc;</span><br><span class="line">        std::allocator_traits&lt;std::allocator&lt;T&gt;&gt; traits;</span><br><span class="line">        traits.<span class="built_in">construct</span>(alloc, <span class="built_in">static_cast</span>&lt;T*&gt;(p), args...);</span><br><span class="line">    };</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>以上代码是正确的使用方法，对于不定参数
-<code>Args&amp;&amp;... args</code> 在函数中使用时一定都是带上
-<code>...</code> 使用的</p>
-<p>刚开始报错就是我在 lambda 捕获列表中一直写的是
-<code>[&amp;args]</code>, 而且后面传入 construct 函数时也需要使用
-<code>args...</code> 或者使用 <code>std::move(args)...</code></p>
-<p>关于 lambda 捕获，可以参考 <a href="https://zh.cppreference.com/w/cpp/language/lambda">Lambda 表达式
-(C++11 起) - cppreference.com</a></p>
-<p>关于 不定参数，可以参考 [<a href="https://zh.cppreference.com/w/cpp/language/parameter_pack">形参包
-- cppreference.com</a>]</p>
-<p>包展开:</p>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="built_in">f</span>(&amp;args...); <span class="comment">// 展开成 f(&amp;E1, &amp;E2, &amp;E3)</span></span><br><span class="line"><span class="built_in">f</span>(n, ++args...); <span class="comment">// 展开成 f(n, ++E1, ++E2, ++E3);</span></span><br><span class="line"><span class="built_in">f</span>(++args..., n); <span class="comment">// 展开成 f(++E1, ++E2, ++E3, n);</span></span><br><span class="line"><span class="built_in">f</span>(<span class="built_in">const_cast</span>&lt;<span class="type">const</span> Args*&gt;(&amp;args)...);</span><br><span class="line"><span class="comment">// f(const_cast&lt;const E1*&gt;(&amp;X1), const_cast&lt;const E2*&gt;(&amp;X2), const_cast&lt;const E3*&gt;(&amp;X3))</span></span><br><span class="line"><span class="built_in">f</span>(<span class="built_in">h</span>(args...) + args...); <span class="comment">// 展开成</span></span><br><span class="line"><span class="comment">// f(h(E1,E2,E3) + E1, h(E1,E2,E3) + E2, h(E1,E2,E3) + E3)</span></span><br></pre></td></tr></tbody></table></figure>
 <script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
       <categories>
         <category>C++</category>
@@ -2137,6 +2137,27 @@ Derived [10]; 这个问题是 C 语言的转型的问题，
       </categories>
   </entry>
   <entry>
+    <title>dumpbin 查看 DLL 导出信息</title>
+    <url>/posts/e6310a89/</url>
+    <content><![CDATA[<p>dumpbin 是 vs 提供的一个工具，可以用于查看 dll/exe 的信息，32 位还是 64 位，
+导出函数等</p>
+<span id="more"></span>
+<p><a href="https://blog.csdn.net/luoyu510183/article/details/93666808">https://blog.csdn.net/luoyu510183/article/details/93666808</a></p>
+<p>如果导入 dll 时发现没有找到该函数，
+要根据 dll 的导出约定方式设置对应的导入方式，
+否则虽然函数名一样但实际上符号是不同的.</p>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line">dumpbin /exports xxx.dll</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> once</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="string">"C"</span> {</span><br><span class="line">    <span class="comment">//extern "C" + _stdcall,函数导出符号为 _CreateNativeManager@0 : _+函数名+@+传参字节数</span></span><br><span class="line">    <span class="comment">//由于_stdcall是被调用方清理堆栈, 所以函数符号里面包含了传参的信息</span></span><br><span class="line">    _declspec(dllexport) <span class="function">NativeManager* _stdcall <span class="title">CreateNativeManager</span><span class="params">()</span></span>;</span><br><span class="line">    _declspec(dllexport) <span class="function"><span class="type">void</span> _stdcall <span class="title">ReleaseNativeManager</span><span class="params">()</span></span>;</span><br><span class="line">    _declspec(dllexport) <span class="built_in">void</span>(_stdcall ExSetLogHandler)(LogHandler handler);</span><br><span class="line">    <span class="comment">//extern "C" + _cdecl,函数导出符号为 ReleaseNativeManager2 : 函数名</span></span><br><span class="line">    <span class="comment">//由于_cdecl是调用方清理堆栈, 所以只需要函数名就可以</span></span><br><span class="line">    _declspec(dllexport) <span class="built_in">void</span>(_cdecl ReleaseNativeManager2)();</span><br><span class="line">}</span><br><span class="line"><span class="comment">//不使用extern的情况下, 是C++的导出方式, 函数符号如下：</span></span><br><span class="line"><span class="comment">//?ReleaseNativeManager1@@YGXH@Z : ?+函数名+@@YG+返回类型+参数1类型...+@Z</span></span><br><span class="line"><span class="comment">//如果是_cdecl @YG变为@YA</span></span><br><span class="line"><span class="comment">//如果没有参数即参数为void,则以Z结尾, 例如：</span></span><br><span class="line"><span class="comment">//?ReleaseNativeManager3@@YAXXZ : ?+函数名+@@YA+返回类型+XZ</span></span><br><span class="line"><span class="comment">//以上 X表示 void类型, H表示int参数类型</span></span><br><span class="line">_declspec(dllexport) <span class="built_in">void</span>(_stdcall ReleaseNativeManager1)(<span class="type">int</span> num);</span><br><span class="line">_declspec(dllexport) <span class="built_in">void</span>(_cdecl ReleaseNativeManager3)();</span><br></pre></td></tr></tbody></table></figure>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
+      <categories>
+        <category>C++</category>
+      </categories>
+      <tags>
+        <tag>C++</tag>
+        <tag>DLL</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>extern C 用法</title>
     <url>/posts/73245494/</url>
     <content><![CDATA[<h2 id="extern-c-作用">extern C 作用</h2>
@@ -2172,6 +2193,12 @@ Cpp 编写的函数库 (lib/dll/a/so), 也可以以 C 语言函数接口为标�
 <p>Cpp 中调用</p>
 <figure class="highlight cpp"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="comment">// 或者 extern "C" int add(int x, int y);</span></span><br><span class="line"><span class="keyword">extern</span> <span class="string">"C"</span> {</span><br><span class="line">    <span class="meta">#<span class="keyword">include</span> <span class="string">"chead.h"</span></span></span><br><span class="line">}</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>{</span><br><span class="line">    <span class="type">int</span> c = <span class="built_in">add</span>(<span class="number">100</span>, <span class="number">200</span>);</span><br><span class="line">    std::cout &lt;&lt; c &lt;&lt; std::endl;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
 <script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
+      <categories>
+        <category>C++</category>
+      </categories>
+      <tags>
+        <tag>C++</tag>
+      </tags>
   </entry>
   <entry>
     <title>从递归到动态规划</title>
@@ -2203,27 +2230,6 @@ Cpp 编写的函数库 (lib/dll/a/so), 也可以以 C 语言函数接口为标�
       <categories>
         <category>数据结构&amp;设计模式</category>
       </categories>
-  </entry>
-  <entry>
-    <title>dumpbin 查看 DLL 导出信息</title>
-    <url>/posts/e6310a89/</url>
-    <content><![CDATA[<p>dumpbin 是 vs 提供的一个工具，可以用于查看 dll/exe 的信息，32 位还是 64 位，
-导出函数等</p>
-<span id="more"></span>
-<p><a href="https://blog.csdn.net/luoyu510183/article/details/93666808">https://blog.csdn.net/luoyu510183/article/details/93666808</a></p>
-<p>如果导入 dll 时发现没有找到该函数，
-要根据 dll 的导出约定方式设置对应的导入方式，
-否则虽然函数名一样但实际上符号是不同的.</p>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line">dumpbin /exports xxx.dll</span><br></pre></td></tr></tbody></table></figure>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> once</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="string">"C"</span> {</span><br><span class="line">    <span class="comment">//extern "C" + _stdcall,函数导出符号为 _CreateNativeManager@0 : _+函数名+@+传参字节数</span></span><br><span class="line">    <span class="comment">//由于_stdcall是被调用方清理堆栈, 所以函数符号里面包含了传参的信息</span></span><br><span class="line">    _declspec(dllexport) <span class="function">NativeManager* _stdcall <span class="title">CreateNativeManager</span><span class="params">()</span></span>;</span><br><span class="line">    _declspec(dllexport) <span class="function"><span class="type">void</span> _stdcall <span class="title">ReleaseNativeManager</span><span class="params">()</span></span>;</span><br><span class="line">    _declspec(dllexport) <span class="built_in">void</span>(_stdcall ExSetLogHandler)(LogHandler handler);</span><br><span class="line">    <span class="comment">//extern "C" + _cdecl,函数导出符号为 ReleaseNativeManager2 : 函数名</span></span><br><span class="line">    <span class="comment">//由于_cdecl是调用方清理堆栈, 所以只需要函数名就可以</span></span><br><span class="line">    _declspec(dllexport) <span class="built_in">void</span>(_cdecl ReleaseNativeManager2)();</span><br><span class="line">}</span><br><span class="line"><span class="comment">//不使用extern的情况下, 是C++的导出方式, 函数符号如下：</span></span><br><span class="line"><span class="comment">//?ReleaseNativeManager1@@YGXH@Z : ?+函数名+@@YG+返回类型+参数1类型...+@Z</span></span><br><span class="line"><span class="comment">//如果是_cdecl @YG变为@YA</span></span><br><span class="line"><span class="comment">//如果没有参数即参数为void,则以Z结尾, 例如：</span></span><br><span class="line"><span class="comment">//?ReleaseNativeManager3@@YAXXZ : ?+函数名+@@YA+返回类型+XZ</span></span><br><span class="line"><span class="comment">//以上 X表示 void类型, H表示int参数类型</span></span><br><span class="line">_declspec(dllexport) <span class="built_in">void</span>(_stdcall ReleaseNativeManager1)(<span class="type">int</span> num);</span><br><span class="line">_declspec(dllexport) <span class="built_in">void</span>(_cdecl ReleaseNativeManager3)();</span><br></pre></td></tr></tbody></table></figure>
-<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
-      <categories>
-        <category>C++</category>
-      </categories>
-      <tags>
-        <tag>C++</tag>
-        <tag>DLL</tag>
-      </tags>
   </entry>
   <entry>
     <title>位运算</title>
@@ -2486,93 +2492,6 @@ y\)</span> 和<span class="math inline"> \(\vec z\)</span> 同理</p>
       </categories>
   </entry>
   <entry>
-    <title>常用设计模式</title>
-    <url>/posts/364ea8cc/</url>
-    <content><![CDATA[<p>设计模式列表备忘</p>
-<span id="more"></span>
-<ul>
-<li>原则
-<ul>
-<li><strong>开闭原则</strong> (封装不变，开放变化) 也说成对扩展开放，
-对修改关闭</li>
-<li><strong>里氏替换</strong>
-(任何基类出现的地方一定可以用派生类替换)</li>
-<li><strong> 依赖倒置</strong> (针对接口编程，依赖于抽象)</li>
-<li><strong> 接口隔离</strong> (使用多个单一功能接口，
-比使用单个复杂接口好)</li>
-<li><strong> 迪米特法则</strong> (最少知道原则，
-一个实体应尽量少地与其他实体之间发生相互关联)</li>
-<li><strong> 合成复用</strong> (尽量使用组合，而不是使用继承)</li>
-</ul></li>
-<li> 池模式
-<ul>
-<li>对象池 / 内存池 (对象重复利用，减少内存的频繁申请与释放)</li>
-<li> 线程池</li>
-<li>连接池</li>
-</ul></li>
-<li>创建型
-<ul>
-<li>单例模式</li>
-<li>简单工厂方法 (一个方法，根据不同参数返回不同对象)</li>
-<li> 工厂模式 (每个工厂对应一种产品，
-利用一个工厂对象不断生成同类型产品)</li>
-<li> 抽象工厂模式 (一个抽象工厂提供多种产品接口，
-但每个产品的实际生产依赖不同的实际工厂对象生产的 "零件")</li>
-<li> 创建者模式 (分部分，逐步构造复杂对象的各个部分，
-最后调用一个 <code>build()</code> 方法构造出复杂对象)</li>
-<li> 原型模式</li>
-</ul></li>
-<li>结构型
-<ul>
-<li>适配器模式 (不同接口适配)</li>
-<li> 代理模式</li>
-<li>装饰器模式</li>
-<li>外观模式 (繁杂复杂接口封装为简单易用的接口)</li>
-<li> 桥接模式 (变化的不同维度分别拆分抽象，再组合起来。书本 1, 书本 2,
-颜色 1, 颜色 2, 不应该弄 4 种子类，而是 I 书本包含 I 颜色，书本有两种实现，
-颜色有两种实现)</li>
-<li> 组合模式 (整体与层次关系，单个对象与组合对象有一致接口。树状结构，
-由基本节点可以组合出枝节点，枝节点可以继续组合，
-且组合节点与基本节点有完全一样的接口，可以不做区分调用)</li>
-<li> 享元模式 (工厂模式该进，有点像对象池的意思，若需要大量相同子对象，
-可以在细粒度上构建共享资源，防止过多相同的内存开销；
-例如一些语言中的 String 池，相同字符串都指向内存同一地址，
-而不是新创建)</li>
-</ul></li>
-<li> 行为型
-<ul>
-<li>策略模式 (将处理方法抽象化，
-针对不同的选择传入不同的处理方法对象)</li>
-<li> 模板方法模式</li>
-<li>观察者模式 (订阅 - 通知)</li>
-<li> 中介者模式 (将多个对象互相复杂依赖改为星型结构，
-每个对象都只与中介者交互依赖)</li>
-<li> 状态模式 (将状态封装，对象具有状态，状态可转换，
-对象的相同接口在不同状态下有不同表现，接口实现可依赖于状态的实现)</li>
-<li> 责任链模式 (收到一个请求:
-IP 过滤 -&gt; 授权验证 -&gt; 日志记录 -&gt; 请求处理 -&gt; 页面渲染)</li>
-<li> 命令模式 (将控制 / 操作由接口调用改成封装成<code>命令对象</code> ,
-可以用于需要 操作历史 / 操作日志 / 撤销重做 的场景)</li>
-<li> 备忘录模式 (发起人，备忘录，管理者，
-只有发起人可以将自己内部状态存入备忘录对象，或者从中读取内部状态；
-管理者管理备忘录对象，但不能读取 / 操作备忘录对象内部内容；
-游戏角色在战斗失败后恢复到战前的状态)</li>
-<li> 迭代器模式 (iterator)</li>
-<li> 访问者模式 (数据对象的类很少改变，但经常需要在此对象上定义新的操作，
-定义访问者类封装了对数据类的执行算法，
-这样数据对象的执行算法可以随着访问者的改变而改变)</li>
-<li> 解释器模式 (符号解析)</li>
-</ul></li>
-</ul>
-<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
-      <categories>
-        <category>数据结构&amp;设计模式</category>
-      </categories>
-      <tags>
-        <tag>设计模式</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>浮点数存储结构</title>
     <url>/posts/6c1bab40/</url>
     <content><![CDATA[<p>浮点数在内存中的存储结构</p>
@@ -2669,6 +2588,93 @@ M=0</p>
       </categories>
       <tags>
         <tag>浮点数</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>常用设计模式</title>
+    <url>/posts/364ea8cc/</url>
+    <content><![CDATA[<p>设计模式列表备忘</p>
+<span id="more"></span>
+<ul>
+<li>原则
+<ul>
+<li><strong>开闭原则</strong> (封装不变，开放变化) 也说成对扩展开放，
+对修改关闭</li>
+<li><strong>里氏替换</strong>
+(任何基类出现的地方一定可以用派生类替换)</li>
+<li><strong> 依赖倒置</strong> (针对接口编程，依赖于抽象)</li>
+<li><strong> 接口隔离</strong> (使用多个单一功能接口，
+比使用单个复杂接口好)</li>
+<li><strong> 迪米特法则</strong> (最少知道原则，
+一个实体应尽量少地与其他实体之间发生相互关联)</li>
+<li><strong> 合成复用</strong> (尽量使用组合，而不是使用继承)</li>
+</ul></li>
+<li> 池模式
+<ul>
+<li>对象池 / 内存池 (对象重复利用，减少内存的频繁申请与释放)</li>
+<li> 线程池</li>
+<li>连接池</li>
+</ul></li>
+<li>创建型
+<ul>
+<li>单例模式</li>
+<li>简单工厂方法 (一个方法，根据不同参数返回不同对象)</li>
+<li> 工厂模式 (每个工厂对应一种产品，
+利用一个工厂对象不断生成同类型产品)</li>
+<li> 抽象工厂模式 (一个抽象工厂提供多种产品接口，
+但每个产品的实际生产依赖不同的实际工厂对象生产的 "零件")</li>
+<li> 创建者模式 (分部分，逐步构造复杂对象的各个部分，
+最后调用一个 <code>build()</code> 方法构造出复杂对象)</li>
+<li> 原型模式</li>
+</ul></li>
+<li>结构型
+<ul>
+<li>适配器模式 (不同接口适配)</li>
+<li> 代理模式</li>
+<li>装饰器模式</li>
+<li>外观模式 (繁杂复杂接口封装为简单易用的接口)</li>
+<li> 桥接模式 (变化的不同维度分别拆分抽象，再组合起来。书本 1, 书本 2,
+颜色 1, 颜色 2, 不应该弄 4 种子类，而是 I 书本包含 I 颜色，书本有两种实现，
+颜色有两种实现)</li>
+<li> 组合模式 (整体与层次关系，单个对象与组合对象有一致接口。树状结构，
+由基本节点可以组合出枝节点，枝节点可以继续组合，
+且组合节点与基本节点有完全一样的接口，可以不做区分调用)</li>
+<li> 享元模式 (工厂模式该进，有点像对象池的意思，若需要大量相同子对象，
+可以在细粒度上构建共享资源，防止过多相同的内存开销；
+例如一些语言中的 String 池，相同字符串都指向内存同一地址，
+而不是新创建)</li>
+</ul></li>
+<li> 行为型
+<ul>
+<li>策略模式 (将处理方法抽象化，
+针对不同的选择传入不同的处理方法对象)</li>
+<li> 模板方法模式</li>
+<li>观察者模式 (订阅 - 通知)</li>
+<li> 中介者模式 (将多个对象互相复杂依赖改为星型结构，
+每个对象都只与中介者交互依赖)</li>
+<li> 状态模式 (将状态封装，对象具有状态，状态可转换，
+对象的相同接口在不同状态下有不同表现，接口实现可依赖于状态的实现)</li>
+<li> 责任链模式 (收到一个请求:
+IP 过滤 -&gt; 授权验证 -&gt; 日志记录 -&gt; 请求处理 -&gt; 页面渲染)</li>
+<li> 命令模式 (将控制 / 操作由接口调用改成封装成<code>命令对象</code> ,
+可以用于需要 操作历史 / 操作日志 / 撤销重做 的场景)</li>
+<li> 备忘录模式 (发起人，备忘录，管理者，
+只有发起人可以将自己内部状态存入备忘录对象，或者从中读取内部状态；
+管理者管理备忘录对象，但不能读取 / 操作备忘录对象内部内容；
+游戏角色在战斗失败后恢复到战前的状态)</li>
+<li> 迭代器模式 (iterator)</li>
+<li> 访问者模式 (数据对象的类很少改变，但经常需要在此对象上定义新的操作，
+定义访问者类封装了对数据类的执行算法，
+这样数据对象的执行算法可以随着访问者的改变而改变)</li>
+<li> 解释器模式 (符号解析)</li>
+</ul></li>
+</ul>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
+      <categories>
+        <category>数据结构&amp;设计模式</category>
+      </categories>
+      <tags>
+        <tag>设计模式</tag>
       </tags>
   </entry>
   <entry>
