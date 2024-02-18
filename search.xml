@@ -407,6 +407,194 @@ https://f-droid.org/en/packages/com.nhellfire.kerneladiutor</p>
       </tags>
   </entry>
   <entry>
+    <title>ArchLinux 使用</title>
+    <url>/posts/2d9deefc/</url>
+    <content><![CDATA[<p>Arch 是众多 Linux 发行版中的其中一个，但是它比较纯净，
+同时安装也相比于其它的 Linux 发行版复杂一些，
+从头安装一个 ArchLinux 可以学习不少 Linux 知识</p>
+<p>推荐按照官方的安装教程一步步执行:
+https://wiki.archlinux.org/title/Installation_guide</p>
+<p>最好阅读英文版，更新日期比较新</p>
+<p>以下是折腾 Arch 的记录</p>
+<span id="more"></span>
+<h2 id="安装步骤">1 安装步骤</h2>
+<h3 id="制作启动u盘">1.1 制作启动 U 盘</h3>
+<ul>
+<li>镜像文件下载: https://archlinux.org/download/</li>
+<li> 使用 rufus 等工具制作 UEFI 启动盘</li>
+<li> BIOS 中设置启动模式为 UEFI</li>
+<li> 通过 U 盘启动</li>
+</ul>
+<h3 id="连接网络">1.2 连接网络</h3>
+<p>U 盘启动后是一个用于安装系统的 Linux 环境，必须连接到网络才能进行 arch
+linux 的安装</p>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 查看网卡状态, 打开网口</span></span><br><span class="line">ip <span class="built_in">link</span></span><br><span class="line">ip <span class="built_in">link</span> <span class="built_in">set</span> dev [interface] up</span><br><span class="line"></span><br><span class="line"><span class="comment"># iwctl 连接wifi</span></span><br><span class="line">iwctl <span class="comment"># 进入iwc交互模式</span></span><br><span class="line">[iwd] <span class="built_in">help</span></span><br><span class="line">[iwd] device list</span><br><span class="line">[iwd] device [device] set-property Powered on</span><br><span class="line">[iwd] adapter [adapter] set-property Powered on</span><br><span class="line">[iwd] station [device] scan</span><br><span class="line">[iwd] station [device] get-networks</span><br><span class="line">[iwd] station [device] connect SSID</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检测网络</span></span><br><span class="line">ping archlinux.org</span><br></pre></td></tr></tbody></table></figure>
+<p>如果 wifi 不好连接，可直接使用网线连接</p>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 查看系统ip地址</span></span><br><span class="line">ip addr</span><br></pre></td></tr></tbody></table></figure>
+<p>之后使用 ssh 远程连接，方便操作</p>
+<h3 id="同步系统时钟">1.3 同步系统时钟</h3>
+<p>同步系统时钟</p>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 开启时间同步</span></span><br><span class="line">timedatectl set-ntp <span class="literal">true</span></span><br><span class="line"><span class="comment"># 时区不对先不用管</span></span><br><span class="line">timedatectl</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="磁盘分区">1.4 磁盘分区</h3>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 查看磁盘设备</span></span><br><span class="line">lsblk</span><br><span class="line">fdisk -l</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用fdisk分区</span></span><br><span class="line">fdisk /dev/[nvme0n1] <span class="comment"># 需要分区的磁盘设备, 交互式操作, m查看帮助, 创建GTP分区表, 分区开始位置自动, 结束位置可以使用+1G的方式确定</span></span><br></pre></td></tr></tbody></table></figure>
+<p>一般来说，一个 linux 系统需要以下 3 个分区</p>
+<table>
+<colgroup>
+<col style="width: 12%">
+<col style="width: 30%">
+<col style="width: 57%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>挂载点</th>
+<th>大小</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>/boot</code></td>
+<td>300M ~ 1G</td>
+<td>EFI 分区，一般需要是磁盘第一个分区</td>
+</tr>
+<tr class="even">
+<td><code>[swap]</code></td>
+<td>4G ~ 32G (看心情)</td>
+<td> 交换分区，内存不足时用于缓存</td>
+</tr>
+<tr class="odd">
+<td><code>/</code></td>
+<td>剩余所有</td>
+<td> linux 系统根目录</td>
+</tr>
+</tbody>
+</table>
+<p>也可以根据需要将 <code>/home</code>, <code>/root</code>,
+<code>/srv</code> 或者 <code>/var</code> 等进行单独分区，以便于数据备份</p>
+<p>fdisk 分区写入后，退出交互操作，格式化各分区</p>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 格式化分区</span></span><br><span class="line">mkfs.ext4 /dev/[root_partition] <span class="comment"># 以及其它linux文件分区, /home, /root, /srv</span></span><br><span class="line">mkswap /dev/[swap_partition]</span><br><span class="line">mkfs.fat -F 32 /dev/[efi_system_partition] <span class="comment"># EFI分区必须格式化为FAT32格式</span></span><br></pre></td></tr></tbody></table></figure>
+<h3 id="挂载系统分区">1.5 挂载系统分区</h3>
+<p>所有的分区都要按照实际情况挂载上去，包括交换分区，
+之后的 <code>genfstab</code> 命令会检测所有的挂载分区和交换分区</p>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 首先挂载根分区</span></span><br><span class="line">mount /dev/[root_partition] /mnt</span><br><span class="line">mount --<span class="built_in">mkdir</span> /dev/[efi_system_partition] /mnt/boot</span><br><span class="line"><span class="comment"># 如果有自定义的其余分区, 也都挂载进来</span></span><br><span class="line">mount --<span class="built_in">mkdir</span> /dev/[home_partition] /mnt/home</span><br><span class="line">mount --<span class="built_in">mkdir</span> /dev/[root_home_partition] /mnt/root</span><br><span class="line">mount --<span class="built_in">mkdir</span> /dev/[srv_partition] /mnt/srv</span><br><span class="line"><span class="comment"># 如果有swap分区, 也打开它</span></span><br><span class="line">swapon /dev/[swap_partition]</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="更改pacman镜像源">1.6 更改 pacman 镜像源</h3>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">nano /etc/pacman.d/mirrorlist</span><br><span class="line"><span class="comment"># 源的优先级取决于顺序, 可以将以下国内源添加在最上方</span></span><br><span class="line"><span class="comment"># Server = https://mirrors.tuna.tsinghua.edu.cn/archlinux/$repo/os/$arch</span></span><br></pre></td></tr></tbody></table></figure>
+<h3 id="安装系统">1.7 安装系统</h3>
+<p>首先安装必须的基本包</p>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">pacstrap -K /mnt base linux linux-firmware</span><br></pre></td></tr></tbody></table></figure>
+<p>配置系统</p>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 将分区挂载信息写入fstab文件, 生成文件后检查文件是否有错</span></span><br><span class="line">genfstab -U /mnt &gt;&gt; /mnt/etc/fstab</span><br></pre></td></tr></tbody></table></figure>
+<p>change root 到新系统下</p>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">arch-chroot /mnt</span><br></pre></td></tr></tbody></table></figure>
+<p>设置系统时间时区</p>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="built_in">ln</span> -sf /usr/share/zoneinfo/[Asia/Shanghai] /etc/localtime</span><br><span class="line">hwclock --systohc <span class="comment"># 写入系统时间bios</span></span><br></pre></td></tr></tbody></table></figure>
+<p>本地化配置</p>
+<p>编辑 <code>/etc/locale.gen</code>, 取消注释
+<code>en_US.UTF-8 UTF-8</code>, 执行以下命名</p>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">locale-gen</span><br></pre></td></tr></tbody></table></figure>
+<p>创建 <code>/etc/locale.conf</code>, 填入以下内容</p>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">LANG=en_US.UTF-8</span><br></pre></td></tr></tbody></table></figure>
+<p>设置网络名称</p>
+<p>创建 <code>/etc/hostname</code> 文件，
+并填写自己的 <code>hostname</code></p>
+<p>更改 root 账户密码</p>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">passwd</span><br></pre></td></tr></tbody></table></figure>
+<p>安装配置 grub</p>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 更新源信息</span></span><br><span class="line">pacman -Sy</span><br><span class="line">pacman -S grub</span><br><span class="line"><span class="comment"># 安装启动文件</span></span><br><span class="line">grub-install --target=x86_64-efi --efi-directory=[/boot] --bootloader-id=GRUB</span><br><span class="line"><span class="comment"># 生成grub配置</span></span><br><span class="line">grub-mkconfig -o /boot/grub/grub.cfg</span><br></pre></td></tr></tbody></table></figure>
+<p>安装 microcode 微码包</p>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># intel cpu安装intel-ucode, amd cpu安装amd-ucode</span></span><br><span class="line">pacman -S amd-ucode</span><br></pre></td></tr></tbody></table></figure>
+<p>微码包应该尽量早的加载，可以通过 grub 配置</p>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 重新运行grub配置, 将自动检测微码包资源, 并放在最开始加载</span></span><br><span class="line">grub-mkconfig -o /boot/grub/grub.cfg</span><br><span class="line"><span class="comment"># 在/boot/grub/grub.cfg中应该能看到以下配置</span></span><br><span class="line"><span class="comment"># initrd    /boot/[cpu_manufacturer]-ucode.img /boot/initramfs-linux.img</span></span><br></pre></td></tr></tbody></table></figure>
+<p>安装基本软件</p>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 安装需要的软件</span></span><br><span class="line">pacman -S base-devel openssh nano dhcpcd wpa_supplicant neofetch dmidecode radeontop</span><br></pre></td></tr></tbody></table></figure>
+<p>配置网络和 ssh (以免重启后未联网，还要重新操作，或者连接显示器，
+比较麻烦)</p>
+<p>参考</p>
+<p>https://wiki.archlinux.org/title/Network_configuration/Wireless</p>
+<p>https://wiki.archlinux.org/title/Dhcpcd</p>
+<p>https://wiki.archlinux.org/title/Wpa_supplicant</p>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 编辑ssh配置, 允许root登录</span></span><br><span class="line">nano /etc/ssh/sshd_config <span class="comment"># PermitRootLogin yes</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 打开ssh自启动</span></span><br><span class="line">systemctl <span class="built_in">enable</span> sshd</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加dhcp对wpa_supplicant(wifi wpa)的hook</span></span><br><span class="line"><span class="built_in">ln</span> -s /usr/share/dhcpcd/hooks/10-wpa_supplicant /usr/lib/dhcpcd/dhcpcd-hooks/</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看网口</span></span><br><span class="line">ip <span class="built_in">link</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 仅开启无线网口的自启动配置, 如果没有@xxx, 那么会自启动所有网口</span></span><br><span class="line">systemctl <span class="built_in">enable</span> dhcpcd@[wlan0].service</span><br><span class="line"></span><br><span class="line"><span class="comment"># wpa_supplicant配置, wpa_supplicant会由dhcpcd自动打开, 如果使用systemctl自启动, 也可以开启wpa_supplicant@[wlan0].service</span></span><br><span class="line">wpa_passphrase [MYSSID] [passphrase] &gt; /etc/wpa_supplicant/wpa_supplicant-[wlan0].conf</span><br></pre></td></tr></tbody></table></figure>
+<p>配置好所有内容后，重启系统</p>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 关机使用poweroff</span></span><br><span class="line">reboot</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="使用pacman">2 使用 pacman</h2>
+<p>帮助: <code>pacman -h</code></p>
+<p>标签帮助: <code>pacman -Sh</code></p>
+<p>更新软件源: <code>pacman -Sy</code></p>
+<p>更新源并更新系统: <code>pacman -Syu</code></p>
+<p>搜索在线包: <code>pacman -Ss &lt;package_name&gt;</code></p>
+<p>安装包: <code>pacman -S &lt;package_name&gt;</code></p>
+<p><code>pacman -Rns &lt;package_name&gt;</code>
+删除软件以及不被其他软件依赖的包 (<code>-Rsu</code>
+可能删除其他软件包还在依赖的项，不安全)</p>
+<p><code>pacman -Rc &lt;package_name&gt;</code>
+删除软件包以及其配置项 (可以先使用</p>
+<p><code>pacman -Qdtq</code> 列出不再被其它软件包依赖的软件包名称</p>
+<h2 id="常用软件">3 常用软件</h2>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 查看cpu核心信息</span></span><br><span class="line">lscpu -e</span><br><span class="line"><span class="comment"># 查看各传感器温度</span></span><br><span class="line">pacman -Syu</span><br><span class="line">pacman -S lm_sensors <span class="comment"># 工具集, 可以搜索以下lm_sensors其余用法</span></span><br><span class="line">sensors <span class="comment"># 查看硬件温度</span></span><br><span class="line"><span class="comment"># 查看内存占用</span></span><br><span class="line">free -h</span><br><span class="line"><span class="comment"># 查看磁盘占用</span></span><br><span class="line"><span class="built_in">df</span> -h</span><br><span class="line"><span class="comment"># 查看系统信息</span></span><br><span class="line">pacman -S neofetch</span><br><span class="line">neofetch</span><br><span class="line"><span class="comment"># 查看磁盘分区详情</span></span><br><span class="line">lsblk</span><br><span class="line">fdisk -l</span><br><span class="line"><span class="comment"># 查看pci设备</span></span><br><span class="line">lspci [-k]</span><br><span class="line"><span class="comment"># 查看硬件信息</span></span><br><span class="line">dmidecode [-t memory]</span><br><span class="line"><span class="comment"># 查看amd显卡信息</span></span><br><span class="line">radeontop</span><br></pre></td></tr></tbody></table></figure>
+<p>至此已安装完毕</p>
+<h2 id="展示环节">4 展示环节</h2>
+<img data-src="/posts/2d9deefc/sensors.png" class="">
+<img data-src="/posts/2d9deefc/cpu_ram.png" class="">
+<img data-src="/posts/2d9deefc/radeontop.png" class="">
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
+      <categories>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+        <tag>Arch</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>C++11 中的线程库 thread 与同步库 mutex</title>
+    <url>/posts/4cc95c54/</url>
+    <content><![CDATA[<p>C++11 提供了线程库和同步库，可以屏蔽操作系统接口细节使用多线程了</p>
+<span id="more"></span>
+<h2 id="多线程">多线程</h2>
+<p><code>std::thread</code> 创建与使用</p>
+<p><code>std::this_thread</code> 当前线程</p>
+<h2 id="线程同步">线程同步</h2>
+<p><code>lock_guard</code> 互斥锁</p>
+<p><code>unique_lock</code> + <code>condition_variable</code> 条件锁</p>
+<h2 id="原子操作库">原子操作库</h2>
+<p>实现轻量免锁的多线程安全操作</p>
+<p><a href="https://zh.cppreference.com/w/cpp/atomic/atomic">https://zh.cppreference.com/w/cpp/atomic/atomic</a></p>
+<p><a href="https://zh.cppreference.com/w/cpp/atomic/atomic_flag">https://zh.cppreference.com/w/cpp/atomic/atomic_flag</a></p>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line">std::atomic_int ttt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">test</span><span class="params">(<span class="type">bool</span> add)</span> </span>{</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100000</span>; ++i) {</span><br><span class="line">        <span class="keyword">if</span> (add) ++ttt;</span><br><span class="line">        <span class="keyword">else</span> --ttt;</span><br><span class="line">    }</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"th exit!\n"</span>);</span><br><span class="line">}</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>{</span><br><span class="line">    ttt = <span class="number">0</span>;</span><br><span class="line">    std::vector&lt;std::thread&gt; ths;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">4</span>; ++i) {</span><br><span class="line">        ths.<span class="built_in">emplace_back</span>(test, i % <span class="number">2</span> == <span class="number">0</span>);</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; th : ths) {</span><br><span class="line">        th.<span class="built_in">join</span>();</span><br><span class="line">    }</span><br><span class="line">    std::cout &lt;&lt; ttt &lt;&lt; std::endl;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>输出为 0; 如果把头一行的 std::atomic_int 换成 int, 得到的结果偏差巨大</p>
+<h2 id="异步任务-future-promise">异步任务 future &amp; promise</h2>
+<p>定义于 <code>&lt;future&gt;</code> 头文件</p>
+<p>使用 future 三种方式: packaged_task, promise, async</p>
+<p><a href="https://zh.cppreference.com/w/cpp/thread/future">https://zh.cppreference.com/w/cpp/thread/future</a></p>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;future&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;thread&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">    <span class="comment">// 来自 packaged_task 的 future</span></span><br><span class="line">    <span class="function">std::packaged_task&lt;<span class="title">int</span><span class="params">()</span>&gt; <span class="title">task</span><span class="params">([](){ <span class="keyword">return</span> <span class="number">7</span>; })</span></span>; <span class="comment">// 包装函数</span></span><br><span class="line">    std::future&lt;<span class="type">int</span>&gt; f1 = task.<span class="built_in">get_future</span>();  <span class="comment">// 获取 future</span></span><br><span class="line">    std::<span class="built_in">thread</span>(std::<span class="built_in">move</span>(task)).<span class="built_in">detach</span>(); <span class="comment">// 在线程上运行</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 来自 async() 的 future</span></span><br><span class="line">    std::future&lt;<span class="type">int</span>&gt; f2 = std::<span class="built_in">async</span>(std::launch::async, [](){ <span class="keyword">return</span> <span class="number">8</span>; });</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 来自 promise 的 future</span></span><br><span class="line">    std::promise&lt;<span class="type">int</span>&gt; p;</span><br><span class="line">    std::future&lt;<span class="type">int</span>&gt; f3 = p.<span class="built_in">get_future</span>();</span><br><span class="line">    std::<span class="built_in">thread</span>( [&amp;p]{ p.<span class="built_in">set_value_at_thread_exit</span>(<span class="number">9</span>); }).<span class="built_in">detach</span>();</span><br><span class="line"></span><br><span class="line">    std::cout &lt;&lt; <span class="string">"Waiting..."</span> &lt;&lt; std::flush;</span><br><span class="line">    f1.<span class="built_in">wait</span>();</span><br><span class="line">    f2.<span class="built_in">wait</span>();</span><br><span class="line">    f3.<span class="built_in">wait</span>();</span><br><span class="line">    std::cout &lt;&lt; <span class="string">"Done!\nResults are: "</span></span><br><span class="line">              &lt;&lt; f1.<span class="built_in">get</span>() &lt;&lt; <span class="string">' '</span> &lt;&lt; f2.<span class="built_in">get</span>() &lt;&lt; <span class="string">' '</span> &lt;&lt; f3.<span class="built_in">get</span>() &lt;&lt; <span class="string">'\n'</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><code>std::async</code></p>
+<p>最简单的异步任务使用</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">std::launch::async // 运行新线程, 以异步执行任务</span><br><span class="line">std::launch::deferred // 调用方线程上首次请求其结果时执行任务（惰性求值）</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">// 马上开始异步任务</span></span><br><span class="line">std::future&lt;<span class="type">int</span>&gt; f2 = std::<span class="built_in">async</span>(std::launch::async, [](){ <span class="keyword">return</span> <span class="number">8</span>; });</span><br><span class="line">f2.<span class="built_in">wait</span>(); <span class="comment">// 阻塞至结果变得可用</span></span><br><span class="line"><span class="type">int</span> result = f2.<span class="built_in">get</span>(); <span class="comment">// 获取结果</span></span><br></pre></td></tr></tbody></table></figure>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
+      <categories>
+        <category>C++</category>
+      </categories>
+      <tags>
+        <tag>C++</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>C++11 中的默认函数控制 delete 和 default</title>
+    <url>/posts/be0f7d71/</url>
+    <content><![CDATA[<p>delete 和 default 在 C++ 中用于显式控制默认函数的生成情况，
+我们需要知道 C++ 编译器到底干了些什么</p>
+<span id="more"></span>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> _CRT_SECURE_NO_WARNINGS</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;map&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">//c++11 类默认函数的控制："=default" 和 "=delete"函数</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">C++ 的类有四类特殊成员函数, 它们分别是：默认构造函数、析构函数、拷贝构造函数以及拷贝赋值运算符.</span></span><br><span class="line"><span class="comment">这些类的特殊成员函数负责创建、初始化、销毁, 或者拷贝类的对象.</span></span><br><span class="line"><span class="comment">如果程序员没有显式地为一个类定义某个特殊成员函数, 而又需要用到该特殊成员函数时, 则编译器会隐式的为这个类生成一个默认的特殊成员函数.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// C++11 标准引入了一个新特性："=default"函数. 程序员只需在函数声明后加上“=default;”, 就可将该函数声明为 "=default"函数, 编译器将为显式声明的 "=default"函数自动生成函数体.</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">X</span>() = <span class="keyword">default</span>; <span class="comment">//该函数比用户自己定义的默认构造函数获得更高的代码效率</span></span><br><span class="line">    <span class="built_in">X</span>(<span class="type">int</span> i)</span><br><span class="line">    {</span><br><span class="line">        a = i;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="type">int</span> a;</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line">X obj;</span><br><span class="line"></span><br><span class="line"><span class="comment">// "=default"函数特性仅适用于类的特殊成员函数, 且该特殊成员函数没有默认参数.</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X1</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">f</span><span class="params">()</span> </span>= <span class="keyword">default</span>;      <span class="comment">// err , 函数 f() 非类 X 的特殊成员函数</span></span><br><span class="line">    <span class="built_in">X1</span>(<span class="type">int</span>, <span class="type">int</span>) = <span class="keyword">default</span>;  <span class="comment">// err , 构造函数 X1(int, int) 非 X 的特殊成员函数</span></span><br><span class="line">    <span class="built_in">X1</span>(<span class="type">int</span> = <span class="number">1</span>) = <span class="keyword">default</span>;   <span class="comment">// err , 默认构造函数 X1(int=1) 含有默认参数</span></span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="comment">// "=default"函数既可以在类体里（inline）定义, 也可以在类体外（out-of-line）定义.</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X2</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">X2</span>() = <span class="keyword">default</span>; <span class="comment">//Inline defaulted 默认构造函数</span></span><br><span class="line">    <span class="built_in">X2</span>(<span class="type">const</span> X&amp;);</span><br><span class="line">    X2&amp; <span class="keyword">operator</span> = (<span class="type">const</span> X&amp;);</span><br><span class="line">    ~<span class="built_in">X2</span>() = <span class="keyword">default</span>;  <span class="comment">//Inline defaulted 析构函数</span></span><br><span class="line">};</span><br><span class="line"></span><br><span class="line">X2::<span class="built_in">X2</span>(<span class="type">const</span> X&amp;) = <span class="keyword">default</span>;  <span class="comment">//Out-of-line defaulted 拷贝构造函数</span></span><br><span class="line">X2&amp; X2::<span class="keyword">operator</span>= (<span class="type">const</span> X2&amp;) = <span class="keyword">default</span>;   <span class="comment">//Out-of-line defaulted  拷贝赋值操作符</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 为了能够让程序员显式的禁用某个函数, C++11 标准引入了一个新特性："=delete"函数. 程序员只需在函数声明后上“=delete;”, 就可将该函数禁用.</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X3</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">X3</span>();</span><br><span class="line">    <span class="built_in">X3</span>(<span class="type">const</span> X3&amp;) = <span class="keyword">delete</span>;  <span class="comment">// 声明拷贝构造函数为 deleted 函数</span></span><br><span class="line">    X3&amp; <span class="keyword">operator</span> = (<span class="type">const</span> X3 &amp;) = <span class="keyword">delete</span>; <span class="comment">// 声明拷贝赋值操作符为 deleted 函数</span></span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="comment">// "=delete"函数特性还可用于禁用类的某些转换构造函数, 从而避免不期望的类型转换</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X4</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">X4</span>(<span class="type">double</span>)</span><br><span class="line">    {</span><br><span class="line"></span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="built_in">X4</span>(<span class="type">int</span>) = <span class="keyword">delete</span>;</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="comment">// "=delete"函数特性还可以用来禁用某些用户自定义的类的 new 操作符, 从而避免在自由存储区创建类的对象</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X5</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> *<span class="keyword">operator</span> <span class="title">new</span><span class="params">(<span class="type">size_t</span>)</span> </span>= <span class="keyword">delete</span>;</span><br><span class="line">    <span class="type">void</span> *<span class="keyword">operator</span> <span class="keyword">new</span>[](<span class="type">size_t</span>) = <span class="keyword">delete</span>;</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">mytest</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">    X4 obj1;</span><br><span class="line">    X4 obj2=obj1;   <span class="comment">// 错误, 拷贝构造函数被禁用</span></span><br><span class="line"></span><br><span class="line">    X4 obj3;</span><br><span class="line">    obj3=obj1;     <span class="comment">// 错误, 拷贝赋值操作符被禁用</span></span><br><span class="line"></span><br><span class="line">    X5 *pa = <span class="keyword">new</span> X5;      <span class="comment">// 错误, new 操作符被禁用</span></span><br><span class="line">    X5 *pb = <span class="keyword">new</span> X5[<span class="number">10</span>];  <span class="comment">// 错误, new[] 操作符被禁用</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">    <span class="built_in">mytest</span>();</span><br><span class="line"></span><br><span class="line">    <span class="built_in">system</span>(<span class="string">"pause"</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br><span class="line"></span><br></pre></td></tr></tbody></table></figure>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
+      <categories>
+        <category>C++</category>
+      </categories>
+      <tags>
+        <tag>C++</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>C++11 中的模板改进</title>
     <url>/posts/bce68dd9/</url>
     <content><![CDATA[<p>C++11 中该进了模板，看看还是比较有用的，
@@ -466,55 +654,6 @@ C++11 中 auto 和 decltype 知识点</a></p>
 你知道的不知道的都在这里</a></p>
 <p>如果有任何问题或想法，可以 点此留言，
 我会尽快回复哒！欢迎小伙伴们踊跃留言，希望这里是大家交流互通的平台～</p>
-<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
-      <categories>
-        <category>C++</category>
-      </categories>
-      <tags>
-        <tag>C++</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>C++11 中的线程库 thread 与同步库 mutex</title>
-    <url>/posts/4cc95c54/</url>
-    <content><![CDATA[<p>C++11 提供了线程库和同步库，可以屏蔽操作系统接口细节使用多线程了</p>
-<span id="more"></span>
-<h2 id="多线程">多线程</h2>
-<p><code>std::thread</code> 创建与使用</p>
-<p><code>std::this_thread</code> 当前线程</p>
-<h2 id="线程同步">线程同步</h2>
-<p><code>lock_guard</code> 互斥锁</p>
-<p><code>unique_lock</code> + <code>condition_variable</code> 条件锁</p>
-<h2 id="原子操作库">原子操作库</h2>
-<p>实现轻量免锁的多线程安全操作</p>
-<p><a href="https://zh.cppreference.com/w/cpp/atomic/atomic">https://zh.cppreference.com/w/cpp/atomic/atomic</a></p>
-<p><a href="https://zh.cppreference.com/w/cpp/atomic/atomic_flag">https://zh.cppreference.com/w/cpp/atomic/atomic_flag</a></p>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line">std::atomic_int ttt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">test</span><span class="params">(<span class="type">bool</span> add)</span> </span>{</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100000</span>; ++i) {</span><br><span class="line">        <span class="keyword">if</span> (add) ++ttt;</span><br><span class="line">        <span class="keyword">else</span> --ttt;</span><br><span class="line">    }</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"th exit!\n"</span>);</span><br><span class="line">}</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>{</span><br><span class="line">    ttt = <span class="number">0</span>;</span><br><span class="line">    std::vector&lt;std::thread&gt; ths;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">4</span>; ++i) {</span><br><span class="line">        ths.<span class="built_in">emplace_back</span>(test, i % <span class="number">2</span> == <span class="number">0</span>);</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; th : ths) {</span><br><span class="line">        th.<span class="built_in">join</span>();</span><br><span class="line">    }</span><br><span class="line">    std::cout &lt;&lt; ttt &lt;&lt; std::endl;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>输出为 0; 如果把头一行的 std::atomic_int 换成 int, 得到的结果偏差巨大</p>
-<h2 id="异步任务-future-promise">异步任务 future &amp; promise</h2>
-<p>定义于 <code>&lt;future&gt;</code> 头文件</p>
-<p>使用 future 三种方式: packaged_task, promise, async</p>
-<p><a href="https://zh.cppreference.com/w/cpp/thread/future">https://zh.cppreference.com/w/cpp/thread/future</a></p>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;future&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;thread&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">    <span class="comment">// 来自 packaged_task 的 future</span></span><br><span class="line">    <span class="function">std::packaged_task&lt;<span class="title">int</span><span class="params">()</span>&gt; <span class="title">task</span><span class="params">([](){ <span class="keyword">return</span> <span class="number">7</span>; })</span></span>; <span class="comment">// 包装函数</span></span><br><span class="line">    std::future&lt;<span class="type">int</span>&gt; f1 = task.<span class="built_in">get_future</span>();  <span class="comment">// 获取 future</span></span><br><span class="line">    std::<span class="built_in">thread</span>(std::<span class="built_in">move</span>(task)).<span class="built_in">detach</span>(); <span class="comment">// 在线程上运行</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 来自 async() 的 future</span></span><br><span class="line">    std::future&lt;<span class="type">int</span>&gt; f2 = std::<span class="built_in">async</span>(std::launch::async, [](){ <span class="keyword">return</span> <span class="number">8</span>; });</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 来自 promise 的 future</span></span><br><span class="line">    std::promise&lt;<span class="type">int</span>&gt; p;</span><br><span class="line">    std::future&lt;<span class="type">int</span>&gt; f3 = p.<span class="built_in">get_future</span>();</span><br><span class="line">    std::<span class="built_in">thread</span>( [&amp;p]{ p.<span class="built_in">set_value_at_thread_exit</span>(<span class="number">9</span>); }).<span class="built_in">detach</span>();</span><br><span class="line"></span><br><span class="line">    std::cout &lt;&lt; <span class="string">"Waiting..."</span> &lt;&lt; std::flush;</span><br><span class="line">    f1.<span class="built_in">wait</span>();</span><br><span class="line">    f2.<span class="built_in">wait</span>();</span><br><span class="line">    f3.<span class="built_in">wait</span>();</span><br><span class="line">    std::cout &lt;&lt; <span class="string">"Done!\nResults are: "</span></span><br><span class="line">              &lt;&lt; f1.<span class="built_in">get</span>() &lt;&lt; <span class="string">' '</span> &lt;&lt; f2.<span class="built_in">get</span>() &lt;&lt; <span class="string">' '</span> &lt;&lt; f3.<span class="built_in">get</span>() &lt;&lt; <span class="string">'\n'</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p><code>std::async</code></p>
-<p>最简单的异步任务使用</p>
-<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">std::launch::async // 运行新线程, 以异步执行任务</span><br><span class="line">std::launch::deferred // 调用方线程上首次请求其结果时执行任务（惰性求值）</span><br></pre></td></tr></tbody></table></figure>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">// 马上开始异步任务</span></span><br><span class="line">std::future&lt;<span class="type">int</span>&gt; f2 = std::<span class="built_in">async</span>(std::launch::async, [](){ <span class="keyword">return</span> <span class="number">8</span>; });</span><br><span class="line">f2.<span class="built_in">wait</span>(); <span class="comment">// 阻塞至结果变得可用</span></span><br><span class="line"><span class="type">int</span> result = f2.<span class="built_in">get</span>(); <span class="comment">// 获取结果</span></span><br></pre></td></tr></tbody></table></figure>
-<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
-      <categories>
-        <category>C++</category>
-      </categories>
-      <tags>
-        <tag>C++</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>C++11 中的默认函数控制 delete 和 default</title>
-    <url>/posts/be0f7d71/</url>
-    <content><![CDATA[<p>delete 和 default 在 C++ 中用于显式控制默认函数的生成情况，
-我们需要知道 C++ 编译器到底干了些什么</p>
-<span id="more"></span>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> _CRT_SECURE_NO_WARNINGS</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;map&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">//c++11 类默认函数的控制："=default" 和 "=delete"函数</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">C++ 的类有四类特殊成员函数, 它们分别是：默认构造函数、析构函数、拷贝构造函数以及拷贝赋值运算符.</span></span><br><span class="line"><span class="comment">这些类的特殊成员函数负责创建、初始化、销毁, 或者拷贝类的对象.</span></span><br><span class="line"><span class="comment">如果程序员没有显式地为一个类定义某个特殊成员函数, 而又需要用到该特殊成员函数时, 则编译器会隐式的为这个类生成一个默认的特殊成员函数.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// C++11 标准引入了一个新特性："=default"函数. 程序员只需在函数声明后加上“=default;”, 就可将该函数声明为 "=default"函数, 编译器将为显式声明的 "=default"函数自动生成函数体.</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">X</span>() = <span class="keyword">default</span>; <span class="comment">//该函数比用户自己定义的默认构造函数获得更高的代码效率</span></span><br><span class="line">    <span class="built_in">X</span>(<span class="type">int</span> i)</span><br><span class="line">    {</span><br><span class="line">        a = i;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="type">int</span> a;</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line">X obj;</span><br><span class="line"></span><br><span class="line"><span class="comment">// "=default"函数特性仅适用于类的特殊成员函数, 且该特殊成员函数没有默认参数.</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X1</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">f</span><span class="params">()</span> </span>= <span class="keyword">default</span>;      <span class="comment">// err , 函数 f() 非类 X 的特殊成员函数</span></span><br><span class="line">    <span class="built_in">X1</span>(<span class="type">int</span>, <span class="type">int</span>) = <span class="keyword">default</span>;  <span class="comment">// err , 构造函数 X1(int, int) 非 X 的特殊成员函数</span></span><br><span class="line">    <span class="built_in">X1</span>(<span class="type">int</span> = <span class="number">1</span>) = <span class="keyword">default</span>;   <span class="comment">// err , 默认构造函数 X1(int=1) 含有默认参数</span></span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="comment">// "=default"函数既可以在类体里（inline）定义, 也可以在类体外（out-of-line）定义.</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X2</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">X2</span>() = <span class="keyword">default</span>; <span class="comment">//Inline defaulted 默认构造函数</span></span><br><span class="line">    <span class="built_in">X2</span>(<span class="type">const</span> X&amp;);</span><br><span class="line">    X2&amp; <span class="keyword">operator</span> = (<span class="type">const</span> X&amp;);</span><br><span class="line">    ~<span class="built_in">X2</span>() = <span class="keyword">default</span>;  <span class="comment">//Inline defaulted 析构函数</span></span><br><span class="line">};</span><br><span class="line"></span><br><span class="line">X2::<span class="built_in">X2</span>(<span class="type">const</span> X&amp;) = <span class="keyword">default</span>;  <span class="comment">//Out-of-line defaulted 拷贝构造函数</span></span><br><span class="line">X2&amp; X2::<span class="keyword">operator</span>= (<span class="type">const</span> X2&amp;) = <span class="keyword">default</span>;   <span class="comment">//Out-of-line defaulted  拷贝赋值操作符</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 为了能够让程序员显式的禁用某个函数, C++11 标准引入了一个新特性："=delete"函数. 程序员只需在函数声明后上“=delete;”, 就可将该函数禁用.</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X3</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">X3</span>();</span><br><span class="line">    <span class="built_in">X3</span>(<span class="type">const</span> X3&amp;) = <span class="keyword">delete</span>;  <span class="comment">// 声明拷贝构造函数为 deleted 函数</span></span><br><span class="line">    X3&amp; <span class="keyword">operator</span> = (<span class="type">const</span> X3 &amp;) = <span class="keyword">delete</span>; <span class="comment">// 声明拷贝赋值操作符为 deleted 函数</span></span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="comment">// "=delete"函数特性还可用于禁用类的某些转换构造函数, 从而避免不期望的类型转换</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X4</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">X4</span>(<span class="type">double</span>)</span><br><span class="line">    {</span><br><span class="line"></span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="built_in">X4</span>(<span class="type">int</span>) = <span class="keyword">delete</span>;</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="comment">// "=delete"函数特性还可以用来禁用某些用户自定义的类的 new 操作符, 从而避免在自由存储区创建类的对象</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">X5</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> *<span class="keyword">operator</span> <span class="title">new</span><span class="params">(<span class="type">size_t</span>)</span> </span>= <span class="keyword">delete</span>;</span><br><span class="line">    <span class="type">void</span> *<span class="keyword">operator</span> <span class="keyword">new</span>[](<span class="type">size_t</span>) = <span class="keyword">delete</span>;</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">mytest</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">    X4 obj1;</span><br><span class="line">    X4 obj2=obj1;   <span class="comment">// 错误, 拷贝构造函数被禁用</span></span><br><span class="line"></span><br><span class="line">    X4 obj3;</span><br><span class="line">    obj3=obj1;     <span class="comment">// 错误, 拷贝赋值操作符被禁用</span></span><br><span class="line"></span><br><span class="line">    X5 *pa = <span class="keyword">new</span> X5;      <span class="comment">// 错误, new 操作符被禁用</span></span><br><span class="line">    X5 *pb = <span class="keyword">new</span> X5[<span class="number">10</span>];  <span class="comment">// 错误, new[] 操作符被禁用</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">    <span class="built_in">mytest</span>();</span><br><span class="line"></span><br><span class="line">    <span class="built_in">system</span>(<span class="string">"pause"</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br><span class="line"></span><br></pre></td></tr></tbody></table></figure>
 <script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
       <categories>
         <category>C++</category>
@@ -1184,145 +1323,6 @@ set 类似</li>
       </tags>
   </entry>
   <entry>
-    <title>ArchLinux 使用</title>
-    <url>/posts/2d9deefc/</url>
-    <content><![CDATA[<p>Arch 是众多 Linux 发行版中的其中一个，但是它比较纯净，
-同时安装也相比于其它的 Linux 发行版复杂一些，
-从头安装一个 ArchLinux 可以学习不少 Linux 知识</p>
-<p>推荐按照官方的安装教程一步步执行:
-https://wiki.archlinux.org/title/Installation_guide</p>
-<p>最好阅读英文版，更新日期比较新</p>
-<p>以下是折腾 Arch 的记录</p>
-<span id="more"></span>
-<h2 id="安装步骤">1 安装步骤</h2>
-<h3 id="制作启动u盘">1.1 制作启动 U 盘</h3>
-<ul>
-<li>镜像文件下载: https://archlinux.org/download/</li>
-<li> 使用 rufus 等工具制作 UEFI 启动盘</li>
-<li> BIOS 中设置启动模式为 UEFI</li>
-<li> 通过 U 盘启动</li>
-</ul>
-<h3 id="连接网络">1.2 连接网络</h3>
-<p>U 盘启动后是一个用于安装系统的 Linux 环境，必须连接到网络才能进行 arch
-linux 的安装</p>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 查看网卡状态, 打开网口</span></span><br><span class="line">ip <span class="built_in">link</span></span><br><span class="line">ip <span class="built_in">link</span> <span class="built_in">set</span> dev [interface] up</span><br><span class="line"></span><br><span class="line"><span class="comment"># iwctl 连接wifi</span></span><br><span class="line">iwctl <span class="comment"># 进入iwc交互模式</span></span><br><span class="line">[iwd] <span class="built_in">help</span></span><br><span class="line">[iwd] device list</span><br><span class="line">[iwd] device [device] set-property Powered on</span><br><span class="line">[iwd] adapter [adapter] set-property Powered on</span><br><span class="line">[iwd] station [device] scan</span><br><span class="line">[iwd] station [device] get-networks</span><br><span class="line">[iwd] station [device] connect SSID</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检测网络</span></span><br><span class="line">ping archlinux.org</span><br></pre></td></tr></tbody></table></figure>
-<p>如果 wifi 不好连接，可直接使用网线连接</p>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 查看系统ip地址</span></span><br><span class="line">ip addr</span><br></pre></td></tr></tbody></table></figure>
-<p>之后使用 ssh 远程连接，方便操作</p>
-<h3 id="同步系统时钟">1.3 同步系统时钟</h3>
-<p>同步系统时钟</p>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 开启时间同步</span></span><br><span class="line">timedatectl set-ntp <span class="literal">true</span></span><br><span class="line"><span class="comment"># 时区不对先不用管</span></span><br><span class="line">timedatectl</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="磁盘分区">1.4 磁盘分区</h3>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 查看磁盘设备</span></span><br><span class="line">lsblk</span><br><span class="line">fdisk -l</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用fdisk分区</span></span><br><span class="line">fdisk /dev/[nvme0n1] <span class="comment"># 需要分区的磁盘设备, 交互式操作, m查看帮助, 创建GTP分区表, 分区开始位置自动, 结束位置可以使用+1G的方式确定</span></span><br></pre></td></tr></tbody></table></figure>
-<p>一般来说，一个 linux 系统需要以下 3 个分区</p>
-<table>
-<colgroup>
-<col style="width: 12%">
-<col style="width: 30%">
-<col style="width: 57%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>挂载点</th>
-<th>大小</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>/boot</code></td>
-<td>300M ~ 1G</td>
-<td>EFI 分区，一般需要是磁盘第一个分区</td>
-</tr>
-<tr class="even">
-<td><code>[swap]</code></td>
-<td>4G ~ 32G (看心情)</td>
-<td> 交换分区，内存不足时用于缓存</td>
-</tr>
-<tr class="odd">
-<td><code>/</code></td>
-<td>剩余所有</td>
-<td> linux 系统根目录</td>
-</tr>
-</tbody>
-</table>
-<p>也可以根据需要将 <code>/home</code>, <code>/root</code>,
-<code>/srv</code> 或者 <code>/var</code> 等进行单独分区，以便于数据备份</p>
-<p>fdisk 分区写入后，退出交互操作，格式化各分区</p>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 格式化分区</span></span><br><span class="line">mkfs.ext4 /dev/[root_partition] <span class="comment"># 以及其它linux文件分区, /home, /root, /srv</span></span><br><span class="line">mkswap /dev/[swap_partition]</span><br><span class="line">mkfs.fat -F 32 /dev/[efi_system_partition] <span class="comment"># EFI分区必须格式化为FAT32格式</span></span><br></pre></td></tr></tbody></table></figure>
-<h3 id="挂载系统分区">1.5 挂载系统分区</h3>
-<p>所有的分区都要按照实际情况挂载上去，包括交换分区，
-之后的 <code>genfstab</code> 命令会检测所有的挂载分区和交换分区</p>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 首先挂载根分区</span></span><br><span class="line">mount /dev/[root_partition] /mnt</span><br><span class="line">mount --<span class="built_in">mkdir</span> /dev/[efi_system_partition] /mnt/boot</span><br><span class="line"><span class="comment"># 如果有自定义的其余分区, 也都挂载进来</span></span><br><span class="line">mount --<span class="built_in">mkdir</span> /dev/[home_partition] /mnt/home</span><br><span class="line">mount --<span class="built_in">mkdir</span> /dev/[root_home_partition] /mnt/root</span><br><span class="line">mount --<span class="built_in">mkdir</span> /dev/[srv_partition] /mnt/srv</span><br><span class="line"><span class="comment"># 如果有swap分区, 也打开它</span></span><br><span class="line">swapon /dev/[swap_partition]</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="更改pacman镜像源">1.6 更改 pacman 镜像源</h3>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">nano /etc/pacman.d/mirrorlist</span><br><span class="line"><span class="comment"># 源的优先级取决于顺序, 可以将以下国内源添加在最上方</span></span><br><span class="line"><span class="comment"># Server = https://mirrors.tuna.tsinghua.edu.cn/archlinux/$repo/os/$arch</span></span><br></pre></td></tr></tbody></table></figure>
-<h3 id="安装系统">1.7 安装系统</h3>
-<p>首先安装必须的基本包</p>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">pacstrap -K /mnt base linux linux-firmware</span><br></pre></td></tr></tbody></table></figure>
-<p>配置系统</p>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 将分区挂载信息写入fstab文件, 生成文件后检查文件是否有错</span></span><br><span class="line">genfstab -U /mnt &gt;&gt; /mnt/etc/fstab</span><br></pre></td></tr></tbody></table></figure>
-<p>change root 到新系统下</p>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">arch-chroot /mnt</span><br></pre></td></tr></tbody></table></figure>
-<p>设置系统时间时区</p>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="built_in">ln</span> -sf /usr/share/zoneinfo/[Asia/Shanghai] /etc/localtime</span><br><span class="line">hwclock --systohc <span class="comment"># 写入系统时间bios</span></span><br></pre></td></tr></tbody></table></figure>
-<p>本地化配置</p>
-<p>编辑 <code>/etc/locale.gen</code>, 取消注释
-<code>en_US.UTF-8 UTF-8</code>, 执行以下命名</p>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">locale-gen</span><br></pre></td></tr></tbody></table></figure>
-<p>创建 <code>/etc/locale.conf</code>, 填入以下内容</p>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">LANG=en_US.UTF-8</span><br></pre></td></tr></tbody></table></figure>
-<p>设置网络名称</p>
-<p>创建 <code>/etc/hostname</code> 文件，
-并填写自己的 <code>hostname</code></p>
-<p>更改 root 账户密码</p>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">passwd</span><br></pre></td></tr></tbody></table></figure>
-<p>安装配置 grub</p>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 更新源信息</span></span><br><span class="line">pacman -Sy</span><br><span class="line">pacman -S grub</span><br><span class="line"><span class="comment"># 安装启动文件</span></span><br><span class="line">grub-install --target=x86_64-efi --efi-directory=[/boot] --bootloader-id=GRUB</span><br><span class="line"><span class="comment"># 生成grub配置</span></span><br><span class="line">grub-mkconfig -o /boot/grub/grub.cfg</span><br></pre></td></tr></tbody></table></figure>
-<p>安装 microcode 微码包</p>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># intel cpu安装intel-ucode, amd cpu安装amd-ucode</span></span><br><span class="line">pacman -S amd-ucode</span><br></pre></td></tr></tbody></table></figure>
-<p>微码包应该尽量早的加载，可以通过 grub 配置</p>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 重新运行grub配置, 将自动检测微码包资源, 并放在最开始加载</span></span><br><span class="line">grub-mkconfig -o /boot/grub/grub.cfg</span><br><span class="line"><span class="comment"># 在/boot/grub/grub.cfg中应该能看到以下配置</span></span><br><span class="line"><span class="comment"># initrd    /boot/[cpu_manufacturer]-ucode.img /boot/initramfs-linux.img</span></span><br></pre></td></tr></tbody></table></figure>
-<p>安装基本软件</p>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 安装需要的软件</span></span><br><span class="line">pacman -S base-devel openssh nano dhcpcd wpa_supplicant neofetch dmidecode radeontop</span><br></pre></td></tr></tbody></table></figure>
-<p>配置网络和 ssh (以免重启后未联网，还要重新操作，或者连接显示器，
-比较麻烦)</p>
-<p>参考</p>
-<p>https://wiki.archlinux.org/title/Network_configuration/Wireless</p>
-<p>https://wiki.archlinux.org/title/Dhcpcd</p>
-<p>https://wiki.archlinux.org/title/Wpa_supplicant</p>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 编辑ssh配置, 允许root登录</span></span><br><span class="line">nano /etc/ssh/sshd_config <span class="comment"># PermitRootLogin yes</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 打开ssh自启动</span></span><br><span class="line">systemctl <span class="built_in">enable</span> sshd</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加dhcp对wpa_supplicant(wifi wpa)的hook</span></span><br><span class="line"><span class="built_in">ln</span> -s /usr/share/dhcpcd/hooks/10-wpa_supplicant /usr/lib/dhcpcd/dhcpcd-hooks/</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看网口</span></span><br><span class="line">ip <span class="built_in">link</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 仅开启无线网口的自启动配置, 如果没有@xxx, 那么会自启动所有网口</span></span><br><span class="line">systemctl <span class="built_in">enable</span> dhcpcd@[wlan0].service</span><br><span class="line"></span><br><span class="line"><span class="comment"># wpa_supplicant配置, wpa_supplicant会由dhcpcd自动打开, 如果使用systemctl自启动, 也可以开启wpa_supplicant@[wlan0].service</span></span><br><span class="line">wpa_passphrase [MYSSID] [passphrase] &gt; /etc/wpa_supplicant/wpa_supplicant-[wlan0].conf</span><br></pre></td></tr></tbody></table></figure>
-<p>配置好所有内容后，重启系统</p>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 关机使用poweroff</span></span><br><span class="line">reboot</span><br></pre></td></tr></tbody></table></figure>
-<h2 id="使用pacman">2 使用 pacman</h2>
-<p>帮助: <code>pacman -h</code></p>
-<p>标签帮助: <code>pacman -Sh</code></p>
-<p>更新软件源: <code>pacman -Sy</code></p>
-<p>更新源并更新系统: <code>pacman -Syu</code></p>
-<p>搜索在线包: <code>pacman -Ss &lt;package_name&gt;</code></p>
-<p>安装包: <code>pacman -S &lt;package_name&gt;</code></p>
-<p><code>pacman -Rns &lt;package_name&gt;</code>
-删除软件以及不被其他软件依赖的包 (<code>-Rsu</code>
-可能删除其他软件包还在依赖的项，不安全)</p>
-<p><code>pacman -Rc &lt;package_name&gt;</code>
-删除软件包以及其配置项 (可以先使用</p>
-<p><code>pacman -Qdtq</code> 列出不再被其它软件包依赖的软件包名称</p>
-<h2 id="常用软件">3 常用软件</h2>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># 查看cpu核心信息</span></span><br><span class="line">lscpu -e</span><br><span class="line"><span class="comment"># 查看各传感器温度</span></span><br><span class="line">pacman -Syu</span><br><span class="line">pacman -S lm_sensors <span class="comment"># 工具集, 可以搜索以下lm_sensors其余用法</span></span><br><span class="line">sensors <span class="comment"># 查看硬件温度</span></span><br><span class="line"><span class="comment"># 查看内存占用</span></span><br><span class="line">free -h</span><br><span class="line"><span class="comment"># 查看磁盘占用</span></span><br><span class="line"><span class="built_in">df</span> -h</span><br><span class="line"><span class="comment"># 查看系统信息</span></span><br><span class="line">pacman -S neofetch</span><br><span class="line">neofetch</span><br><span class="line"><span class="comment"># 查看磁盘分区详情</span></span><br><span class="line">lsblk</span><br><span class="line">fdisk -l</span><br><span class="line"><span class="comment"># 查看pci设备</span></span><br><span class="line">lspci [-k]</span><br><span class="line"><span class="comment"># 查看硬件信息</span></span><br><span class="line">dmidecode [-t memory]</span><br><span class="line"><span class="comment"># 查看amd显卡信息</span></span><br><span class="line">radeontop</span><br></pre></td></tr></tbody></table></figure>
-<p>至此已安装完毕</p>
-<h2 id="展示环节">4 展示环节</h2>
-<img data-src="/posts/2d9deefc/sensors.png" class="">
-<img data-src="/posts/2d9deefc/cpu_ram.png" class="">
-<img data-src="/posts/2d9deefc/radeontop.png" class="">
-<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
-      <categories>
-        <category>Linux</category>
-      </categories>
-      <tags>
-        <tag>Linux</tag>
-        <tag>Arch</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>C++ 不定参数到 lambda 的传递</title>
     <url>/posts/15ddce4e/</url>
     <content><![CDATA[<p>使用 不定参数列表传递到 lambda 中总是报错，这里记录一下正确用法</p>
@@ -1340,23 +1340,6 @@ linux 的安装</p>
 - cppreference.com</a>]</p>
 <p>包展开:</p>
 <figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="built_in">f</span>(&amp;args...); <span class="comment">// 展开成 f(&amp;E1, &amp;E2, &amp;E3)</span></span><br><span class="line"><span class="built_in">f</span>(n, ++args...); <span class="comment">// 展开成 f(n, ++E1, ++E2, ++E3);</span></span><br><span class="line"><span class="built_in">f</span>(++args..., n); <span class="comment">// 展开成 f(++E1, ++E2, ++E3, n);</span></span><br><span class="line"><span class="built_in">f</span>(<span class="built_in">const_cast</span>&lt;<span class="type">const</span> Args*&gt;(&amp;args)...);</span><br><span class="line"><span class="comment">// f(const_cast&lt;const E1*&gt;(&amp;X1), const_cast&lt;const E2*&gt;(&amp;X2), const_cast&lt;const E3*&gt;(&amp;X3))</span></span><br><span class="line"><span class="built_in">f</span>(<span class="built_in">h</span>(args...) + args...); <span class="comment">// 展开成</span></span><br><span class="line"><span class="comment">// f(h(E1,E2,E3) + E1, h(E1,E2,E3) + E2, h(E1,E2,E3) + E3)</span></span><br></pre></td></tr></tbody></table></figure>
-<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
-      <categories>
-        <category>C++</category>
-      </categories>
-      <tags>
-        <tag>C++</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>C++ 中 lambda 使用注意事项</title>
-    <url>/posts/24017eff/</url>
-    <content><![CDATA[<p><a href="https://blog.csdn.net/czyt1988/article/details/80149695">https://blog.csdn.net/czyt1988/article/details/80149695</a></p>
-<ul>
-<li><strong> 不要使用 lambda 以引用方式捕获局部变量</strong>！！！(悬挂引用)</li>
-<li>lambda 捕获 this 时也需要注意，lambda 的调用时机是否在 this 的生命周期之外
-(类生命周期)</li>
-</ul>
 <script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
       <categories>
         <category>C++</category>
@@ -1403,6 +1386,23 @@ const 类对象，只能调用 const 函数，确保不会修改类的数据成�
 被隐式隐式指定为内联函数，只能在类的声明中定义（.h 文件）.</p>
 <p>参见 <a href="https://blog.csdn.net/lihao21/article/details/8634876">C++ 的 const 类成员函数</a></p>
 <figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">// A.h</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">A</span>{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="built_in">A</span>():<span class="built_in">curSize</span>(<span class="number">10</span>) {}</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">setSize</span><span class="params">(<span class="type">int</span> size)</span> </span>{ size++; }</span><br><span class="line"></span><br><span class="line">  <span class="comment">// const函数</span></span><br><span class="line">  <span class="function"><span class="type">int</span> <span class="title">size</span><span class="params">()</span> <span class="type">const</span> </span>{ <span class="keyword">return</span> curSize; }  <span class="comment">// 正确示例：不写任何数据成员</span></span><br><span class="line">  <span class="function"><span class="type">int</span> <span class="title">size</span><span class="params">()</span> <span class="type">const</span> </span>{ curSize = <span class="number">2</span>; <span class="keyword">return</span> curSize; }; <span class="comment">// 错误示例： const函数不能修改任何类的数据成员</span></span><br><span class="line">  <span class="function"><span class="type">int</span> <span class="title">size</span><span class="params">()</span> <span class="type">const</span> </span>{ <span class="built_in">setSize</span>(); <span class="keyword">return</span> curSize; } <span class="comment">// 错误示例：const函数不能调用任何可能导致类的数据成员改变的函数, 也就是说, 如果调用自身成员函数, 只能调用const函数</span></span><br><span class="line">  <span class="function"><span class="type">const</span> <span class="type">int</span> <span class="title">size</span><span class="params">()</span> </span>{ <span class="keyword">return</span> curSize; }  <span class="comment">// 函数返回值为const类型：函数体可以修改数据成员, 但返回类型是const, 也就是调用者无法修改</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 函数返回值为constexpr类型</span></span><br><span class="line">  <span class="function"><span class="keyword">constexpr</span> <span class="type">int</span> <span class="title">getMaxSize</span><span class="params">()</span> </span>{ <span class="keyword">return</span> INT_MAX; } <span class="comment">// 正确示例：返回常量值</span></span><br><span class="line">  <span class="comment">// 错误示例：vec.size()运行时确定, 不能在编译期决定</span></span><br><span class="line">  <span class="function"><span class="keyword">constexpr</span> <span class="type">int</span> <span class="title">getMaxSize</span><span class="params">()</span></span></span><br><span class="line"><span class="function">  </span>{</span><br><span class="line">    std::vector&lt;<span class="type">int</span>&gt; vec;</span><br><span class="line">    vec.<span class="built_in">push_back</span>(<span class="number">1</span>);</span><br><span class="line">    vec.<span class="built_in">push_back</span>(<span class="number">2</span>);</span><br><span class="line">    <span class="keyword">return</span> vec.<span class="built_in">size</span>();</span><br><span class="line">  }</span><br><span class="line">  <span class="comment">// 正确：虽然看起来返回的是变量, 但编译器可确定</span></span><br><span class="line">  <span class="function"><span class="keyword">constexpr</span> <span class="type">int</span> <span class="title">getMaxSize</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span></span></span><br><span class="line"><span class="function">  </span>{</span><br><span class="line">    <span class="keyword">return</span> a + b;</span><br><span class="line">  }</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">  <span class="type">int</span> curSize;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">// A.cpp</span></span><br><span class="line"><span class="comment">// 错误示例：constexpr被隐式指定为内联函数, 只能在.h 类内定义, 不能在类实现文件(.cpp)中定义</span></span><br><span class="line"><span class="function"><span class="keyword">constexpr</span> <span class="type">int</span> <span class="title">A::getMaxsize</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">  <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
+      <categories>
+        <category>C++</category>
+      </categories>
+      <tags>
+        <tag>C++</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>C++ 中 lambda 使用注意事项</title>
+    <url>/posts/24017eff/</url>
+    <content><![CDATA[<p><a href="https://blog.csdn.net/czyt1988/article/details/80149695">https://blog.csdn.net/czyt1988/article/details/80149695</a></p>
+<ul>
+<li><strong> 不要使用 lambda 以引用方式捕获局部变量</strong>！！！(悬挂引用)</li>
+<li>lambda 捕获 this 时也需要注意，lambda 的调用时机是否在 this 的生命周期之外
+(类生命周期)</li>
+</ul>
 <script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
       <categories>
         <category>C++</category>
@@ -1760,53 +1760,6 @@ delete 会先调用析构函数，之后释放内存</p>
       </tags>
   </entry>
   <entry>
-    <title>C++ 构造函数与析构函数</title>
-    <url>/posts/50b0fa36/</url>
-    <content><![CDATA[<p>C++ 中构造函数与析构函数一些注意事项</p>
-<span id="more"></span>
-<h2 id="构造函数中不能调用虚函数">构造函数中不能调用虚函数</h2>
-<p>在 C++ 中，实例化一个子类对象的时候，会先构造父类部分，
-父类部分构造完成后再构造子类部分</p>
-<p>因此，<strong>在父类构造函数调用的时候，子类部分数据还未构造完成，
-此时调用子类方法本身就是未定义行为</strong> , 所以 C++
-中构造函数中调用虚函数并不会表现出多态特征</p>
-<h2 id="为什么析构函数需要定义为虚函数">为什么析构函数需要定义为虚函数</h2>
-<p>一个常见的面试问题：为什么 C++ 中的析构函数需要定义为虚函数？</p>
-<p>通常 C++ 析构一个对象时，会依次调用对象的析构函数和它父类的析构函数，
-但是在多态发生时，可能会漏调用对象本身的析构函数</p>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    ~<span class="built_in">A</span>() { <span class="built_in">printf</span>(<span class="string">"~A()\n"</span>); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">B</span> : <span class="keyword">public</span> A</span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    ~<span class="built_in">B</span>() { <span class="built_in">printf</span>(<span class="string">"~B()\n"</span>); }</span><br><span class="line">}</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">    A* ptr = <span class="keyword">new</span> <span class="built_in">B</span>();</span><br><span class="line">    <span class="keyword">delete</span> ptr;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>以上代码是析构函数不使用虚函数的错误写法，
-我们在释放父类指针所指向的对象时，
-希望析构函数调用是先 <code>~B()</code> 再 <code>~A()</code>,
-但以上代码只会调用 <code>~A()</code> 而对象本身属于类 B 的部分不会调用析构函数释放，
-发生内存泄漏</p>
-<p>如果将析构函数写成虚函数，
-那么释放父类指针指向的对象时会根据多态原理调用正确的子类析构函数</p>
-<h2 id="析构函数中不能调用虚函数">析构函数中不能调用虚函数</h2>
-<p>同理，我们将析构函数写成虚函数，
-为了析构函数能从子类到父类一层层释放资源，
-所以<strong>当父类的析构函数被调用时，子类的数据已经被析构，
-此时调用子类的方法也是未定义行为</strong> , 所以 C++
-析构函数中调用虚函数也不会表现出多态</p>
-<p>至于是不是虚表指针没有初始化，
-还是编译器在构造函数和虚构函数中更改了虚表指针的值，这都不重要，
-反正记住编译器的实现是不表现出多态特征</p>
-<p>总结:</p>
-<ul>
-<li>C++ 父类构造函数调用时，子类并未构造完成</li>
-<li> C++ 父类析构函数调用时，子类已经析构</li>
-<li> C++ 编译器实现：在构造函数和析构函数中调用虚函数并没有多态特性</li>
-</ul>
-<p><strong>不要在构造函数和析构函数中调用虚函数</strong></p>
-<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
-      <categories>
-        <category>C++</category>
-      </categories>
-      <tags>
-        <tag>C++</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>C++ 数组长度可以为变量吗</title>
     <url>/posts/7a9ccc43/</url>
     <content><![CDATA[<p>转载：原创程序喵大人 程序喵大人 (微信公众号) (收录于话题:
@@ -1876,6 +1829,53 @@ overflow, 所以动态内存最好使用堆内存.</p>
 <p><strong>代码精进之路 </strong></p>
 <p>代码精进之路，我们一起成长！</p>
 <p><img src="https://secure2.wostatic.cn/static/wtedawzen2SaSyA4ZQ87yB/image.png"></p>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
+      <categories>
+        <category>C++</category>
+      </categories>
+      <tags>
+        <tag>C++</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>C++ 构造函数与析构函数</title>
+    <url>/posts/50b0fa36/</url>
+    <content><![CDATA[<p>C++ 中构造函数与析构函数一些注意事项</p>
+<span id="more"></span>
+<h2 id="构造函数中不能调用虚函数">构造函数中不能调用虚函数</h2>
+<p>在 C++ 中，实例化一个子类对象的时候，会先构造父类部分，
+父类部分构造完成后再构造子类部分</p>
+<p>因此，<strong>在父类构造函数调用的时候，子类部分数据还未构造完成，
+此时调用子类方法本身就是未定义行为</strong> , 所以 C++
+中构造函数中调用虚函数并不会表现出多态特征</p>
+<h2 id="为什么析构函数需要定义为虚函数">为什么析构函数需要定义为虚函数</h2>
+<p>一个常见的面试问题：为什么 C++ 中的析构函数需要定义为虚函数？</p>
+<p>通常 C++ 析构一个对象时，会依次调用对象的析构函数和它父类的析构函数，
+但是在多态发生时，可能会漏调用对象本身的析构函数</p>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span></span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    ~<span class="built_in">A</span>() { <span class="built_in">printf</span>(<span class="string">"~A()\n"</span>); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">B</span> : <span class="keyword">public</span> A</span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    ~<span class="built_in">B</span>() { <span class="built_in">printf</span>(<span class="string">"~B()\n"</span>); }</span><br><span class="line">}</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">    A* ptr = <span class="keyword">new</span> <span class="built_in">B</span>();</span><br><span class="line">    <span class="keyword">delete</span> ptr;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>以上代码是析构函数不使用虚函数的错误写法，
+我们在释放父类指针所指向的对象时，
+希望析构函数调用是先 <code>~B()</code> 再 <code>~A()</code>,
+但以上代码只会调用 <code>~A()</code> 而对象本身属于类 B 的部分不会调用析构函数释放，
+发生内存泄漏</p>
+<p>如果将析构函数写成虚函数，
+那么释放父类指针指向的对象时会根据多态原理调用正确的子类析构函数</p>
+<h2 id="析构函数中不能调用虚函数">析构函数中不能调用虚函数</h2>
+<p>同理，我们将析构函数写成虚函数，
+为了析构函数能从子类到父类一层层释放资源，
+所以<strong>当父类的析构函数被调用时，子类的数据已经被析构，
+此时调用子类的方法也是未定义行为</strong> , 所以 C++
+析构函数中调用虚函数也不会表现出多态</p>
+<p>至于是不是虚表指针没有初始化，
+还是编译器在构造函数和虚构函数中更改了虚表指针的值，这都不重要，
+反正记住编译器的实现是不表现出多态特征</p>
+<p>总结:</p>
+<ul>
+<li>C++ 父类构造函数调用时，子类并未构造完成</li>
+<li> C++ 父类析构函数调用时，子类已经析构</li>
+<li> C++ 编译器实现：在构造函数和析构函数中调用虚函数并没有多态特性</li>
+</ul>
+<p><strong>不要在构造函数和析构函数中调用虚函数</strong></p>
 <script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
       <categories>
         <category>C++</category>
@@ -2137,25 +2137,41 @@ Derived [10]; 这个问题是 C 语言的转型的问题，
       </categories>
   </entry>
   <entry>
-    <title>dumpbin 查看 DLL 导出信息</title>
-    <url>/posts/e6310a89/</url>
-    <content><![CDATA[<p>dumpbin 是 vs 提供的一个工具，可以用于查看 dll/exe 的信息，32 位还是 64 位，
-导出函数等</p>
+    <title>extern C 用法</title>
+    <url>/posts/73245494/</url>
+    <content><![CDATA[<h2 id="extern-c-作用">extern C 作用</h2>
+<figure class="highlight cpp"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifdef</span> __cplusplus</span></span><br><span class="line"><span class="keyword">extern</span> <span class="string">"C"</span> {</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">   <span class="comment">// 函数声明</span></span><br><span class="line">   <span class="comment">// 或者函数定义</span></span><br><span class="line">   <span class="comment">// 或者#include &lt;C语言Header.h&gt;</span></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> __cplusplus</span></span><br><span class="line">}</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></tbody></table></figure>
+<p><code>extern "C"</code>​<strong>修饰的变量和函数按照 C 语言方式编译和连接</strong></p>
 <span id="more"></span>
-<p><a href="https://blog.csdn.net/luoyu510183/article/details/93666808">https://blog.csdn.net/luoyu510183/article/details/93666808</a></p>
-<p>如果导入 dll 时发现没有找到该函数，
-要根据 dll 的导出约定方式设置对应的导入方式，
-否则虽然函数名一样但实际上符号是不同的.</p>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line">dumpbin /exports xxx.dll</span><br></pre></td></tr></tbody></table></figure>
-<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> once</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="string">"C"</span> {</span><br><span class="line">    <span class="comment">//extern "C" + _stdcall,函数导出符号为 _CreateNativeManager@0 : _+函数名+@+传参字节数</span></span><br><span class="line">    <span class="comment">//由于_stdcall是被调用方清理堆栈, 所以函数符号里面包含了传参的信息</span></span><br><span class="line">    _declspec(dllexport) <span class="function">NativeManager* _stdcall <span class="title">CreateNativeManager</span><span class="params">()</span></span>;</span><br><span class="line">    _declspec(dllexport) <span class="function"><span class="type">void</span> _stdcall <span class="title">ReleaseNativeManager</span><span class="params">()</span></span>;</span><br><span class="line">    _declspec(dllexport) <span class="built_in">void</span>(_stdcall ExSetLogHandler)(LogHandler handler);</span><br><span class="line">    <span class="comment">//extern "C" + _cdecl,函数导出符号为 ReleaseNativeManager2 : 函数名</span></span><br><span class="line">    <span class="comment">//由于_cdecl是调用方清理堆栈, 所以只需要函数名就可以</span></span><br><span class="line">    _declspec(dllexport) <span class="built_in">void</span>(_cdecl ReleaseNativeManager2)();</span><br><span class="line">}</span><br><span class="line"><span class="comment">//不使用extern的情况下, 是C++的导出方式, 函数符号如下：</span></span><br><span class="line"><span class="comment">//?ReleaseNativeManager1@@YGXH@Z : ?+函数名+@@YG+返回类型+参数1类型...+@Z</span></span><br><span class="line"><span class="comment">//如果是_cdecl @YG变为@YA</span></span><br><span class="line"><span class="comment">//如果没有参数即参数为void,则以Z结尾, 例如：</span></span><br><span class="line"><span class="comment">//?ReleaseNativeManager3@@YAXXZ : ?+函数名+@@YA+返回类型+XZ</span></span><br><span class="line"><span class="comment">//以上 X表示 void类型, H表示int参数类型</span></span><br><span class="line">_declspec(dllexport) <span class="built_in">void</span>(_stdcall ReleaseNativeManager1)(<span class="type">int</span> num);</span><br><span class="line">_declspec(dllexport) <span class="built_in">void</span>(_cdecl ReleaseNativeManager3)();</span><br></pre></td></tr></tbody></table></figure>
+<p>Cpp 和 C 编译的编译方式是不同的，比如对于相同的函数原型:
+<code>void foo(int x, int y)</code></p>
+<p>C 语言中该函数被编译后在符号库中的名字是<code>_foo</code></p>
+<p>Cpp 中，函数被编译器编译后，在符号库中的名字会带上参数类型，
+会产生像<code>_foo_int_int</code>(不同编译器可能生成的名字不同，
+但都使用相同机制) 之类的名字</p>
+<p>Cpp <strong>也是依靠这种机制实现函数重载的</strong></p>
+<p><code>extern "C"</code> 的作用就是指示编译器，
+将其修饰或包含的代码按照 C 语言方式编译，编译后的函数符号不包含参数类型，
+<strong>也正是因为这个，</strong>​<code>extern "C"</code>​<strong>中包含的代码不能包含重载函数</strong></p>
+<h2 id="c与cpp中的使用">C 与 Cpp 中的使用</h2>
+<h3 id="c语言中调用cpp代码">C 语言中调用 Cpp 代码</h3>
+<p>当 Cpp 导出 C 语言格式的函数后，不仅 C 语言可以调用 Cpp 的函数；
+Cpp 编写的函数库 (lib/dll/a/so), 也可以以 C 语言函数接口为标准，
+提供给其它语言使用，比如 Python, C# 或者 Lua 等，
+以此实现多语言之间的混合使用 Cpp 头文件</p>
+<figure class="highlight cpp"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">// cpph.h</span></span><br><span class="line"><span class="meta">#<span class="keyword">ifndef</span> CPPH_H</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> CPPH_H</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 只在C++中让extern "C"出现, C语言不支持该语法</span></span><br><span class="line"><span class="comment">// 用__cplusplus宏判断后, C++和C中可以共用这份头文件</span></span><br><span class="line"><span class="comment">// 即使编译为运行库, 也需要一份可以共用的接口头文件</span></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> __cplusplus</span></span><br><span class="line"><span class="keyword">extern</span> <span class="string">"C"</span> {</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">add</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span></span>;</span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> __cplusplus</span></span><br><span class="line">}</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></tbody></table></figure>
+<p>Cpp 实现源码 (或者实现的函数库 lib/dll)</p>
+<figure class="highlight cpp"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">// cpph.cc</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"cpph.h"</span></span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">add</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> </span>{</span><br><span class="line">    <span class="keyword">return</span> x + y;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>C 语言文件</p>
+<figure class="highlight cpp"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">// c_file.c</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">extern</span> <span class="type">int</span> <span class="title">add</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span></span>; <span class="comment">// 或者#include "cpph.h", 包含Cpp头文件</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">main</span><span class="params">()</span> </span>{</span><br><span class="line">    <span class="type">int</span> result = <span class="built_in">add</span>(<span class="number">3</span>, <span class="number">5</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%d\n"</span>, result);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="cpp中调用c代码">Cpp 中调用 C 代码</h3>
+<p>C 头文件</p>
+<figure class="highlight cpp"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">// chead.h</span></span><br><span class="line"><span class="meta">#<span class="keyword">ifndef</span> CHEAD_H</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> CHEAD_H</span></span><br><span class="line"><span class="function"><span class="keyword">extern</span> <span class="type">int</span> <span class="title">add</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span></span>;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></tbody></table></figure>
+<p>C 源文件</p>
+<figure class="highlight cpp"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">// chead.c</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"chead.h"</span></span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">add</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> </span>{</span><br><span class="line">    <span class="keyword">return</span> x + y;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>Cpp 中调用</p>
+<figure class="highlight cpp"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="comment">// 或者 extern "C" int add(int x, int y);</span></span><br><span class="line"><span class="keyword">extern</span> <span class="string">"C"</span> {</span><br><span class="line">    <span class="meta">#<span class="keyword">include</span> <span class="string">"chead.h"</span></span></span><br><span class="line">}</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>{</span><br><span class="line">    <span class="type">int</span> c = <span class="built_in">add</span>(<span class="number">100</span>, <span class="number">200</span>);</span><br><span class="line">    std::cout &lt;&lt; c &lt;&lt; std::endl;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
 <script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
-      <categories>
-        <category>C++</category>
-      </categories>
-      <tags>
-        <tag>C++</tag>
-        <tag>DLL</tag>
-      </tags>
   </entry>
   <entry>
     <title>从递归到动态规划</title>
@@ -2187,6 +2203,130 @@ Derived [10]; 这个问题是 C 语言的转型的问题，
       <categories>
         <category>数据结构&amp;设计模式</category>
       </categories>
+  </entry>
+  <entry>
+    <title>dumpbin 查看 DLL 导出信息</title>
+    <url>/posts/e6310a89/</url>
+    <content><![CDATA[<p>dumpbin 是 vs 提供的一个工具，可以用于查看 dll/exe 的信息，32 位还是 64 位，
+导出函数等</p>
+<span id="more"></span>
+<p><a href="https://blog.csdn.net/luoyu510183/article/details/93666808">https://blog.csdn.net/luoyu510183/article/details/93666808</a></p>
+<p>如果导入 dll 时发现没有找到该函数，
+要根据 dll 的导出约定方式设置对应的导入方式，
+否则虽然函数名一样但实际上符号是不同的.</p>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line">dumpbin /exports xxx.dll</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight c++"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> once</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="string">"C"</span> {</span><br><span class="line">    <span class="comment">//extern "C" + _stdcall,函数导出符号为 _CreateNativeManager@0 : _+函数名+@+传参字节数</span></span><br><span class="line">    <span class="comment">//由于_stdcall是被调用方清理堆栈, 所以函数符号里面包含了传参的信息</span></span><br><span class="line">    _declspec(dllexport) <span class="function">NativeManager* _stdcall <span class="title">CreateNativeManager</span><span class="params">()</span></span>;</span><br><span class="line">    _declspec(dllexport) <span class="function"><span class="type">void</span> _stdcall <span class="title">ReleaseNativeManager</span><span class="params">()</span></span>;</span><br><span class="line">    _declspec(dllexport) <span class="built_in">void</span>(_stdcall ExSetLogHandler)(LogHandler handler);</span><br><span class="line">    <span class="comment">//extern "C" + _cdecl,函数导出符号为 ReleaseNativeManager2 : 函数名</span></span><br><span class="line">    <span class="comment">//由于_cdecl是调用方清理堆栈, 所以只需要函数名就可以</span></span><br><span class="line">    _declspec(dllexport) <span class="built_in">void</span>(_cdecl ReleaseNativeManager2)();</span><br><span class="line">}</span><br><span class="line"><span class="comment">//不使用extern的情况下, 是C++的导出方式, 函数符号如下：</span></span><br><span class="line"><span class="comment">//?ReleaseNativeManager1@@YGXH@Z : ?+函数名+@@YG+返回类型+参数1类型...+@Z</span></span><br><span class="line"><span class="comment">//如果是_cdecl @YG变为@YA</span></span><br><span class="line"><span class="comment">//如果没有参数即参数为void,则以Z结尾, 例如：</span></span><br><span class="line"><span class="comment">//?ReleaseNativeManager3@@YAXXZ : ?+函数名+@@YA+返回类型+XZ</span></span><br><span class="line"><span class="comment">//以上 X表示 void类型, H表示int参数类型</span></span><br><span class="line">_declspec(dllexport) <span class="built_in">void</span>(_stdcall ReleaseNativeManager1)(<span class="type">int</span> num);</span><br><span class="line">_declspec(dllexport) <span class="built_in">void</span>(_cdecl ReleaseNativeManager3)();</span><br></pre></td></tr></tbody></table></figure>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
+      <categories>
+        <category>C++</category>
+      </categories>
+      <tags>
+        <tag>C++</tag>
+        <tag>DLL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>位运算</title>
+    <url>/posts/2633a26/</url>
+    <content><![CDATA[<p>位运算是计算机中最常用的操作之一，
+运用好位运算可以在特定情况下大幅提高计算效率</p>
+<h2 id="原反补码">原反补码</h2>
+<p>正数的原反补码都是自身 负数的补码为原码取反，符号位不变；
+补码为反码加 1, 符号位需要进位时丢弃进位符号位变 0 (进位溢出)
+计算机中的数字都是以补码表示</p>
+<h2 id="有符号整型的二进制位">有符号整型的二进制位</h2>
+<p>以 char (signed char, 1 字节) 为例</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">0 = 0000 0000 b</span><br><span class="line">-1 = 1111 1111 b</span><br></pre></td></tr></tbody></table></figure>
+<span id="more"></span>
+<h2 id="移位操作">移位操作</h2>
+<h3 id="左移">左移</h3>
+<p>以 cpp 为例，左移操作是将数据的所有二进制位都向左移动一定位数，
+高位丢弃，低位补 0</p>
+<p>左移 1 位相当于原数据乘以<span class="math inline"> \(2^1\)</span>,
+左移 n 位相当于原数据乘以<span class="math inline"> \(2^n\)</span>,
+高位丢弃相当于乘以<span class="math inline"> \(2^n\)</span> 后高位溢出</p>
+<p>‍</p>
+<h3 id="右移">右移</h3>
+<p>右移操作需要分情况</p>
+<ol type="1">
+<li>有符号正数，符号位为 0, 右移低位丢弃，高位补 0</li>
+<li> 有符号负数，符号位为 1, 右移低位丢弃，高位补 1</li>
+<li> 无符号整数，右移低位丢弃，高位补 0</li>
+</ol>
+<p>右移 1 位相当于数字除以<span class="math inline"> \(2^1\)</span>,
+右移 n 位相当于除以<span class="math inline"> \(2^n\)</span>,
+低位丢弃的数字相当于整数除法的精度丢失</p>
+<p>‍</p>
+<p>移位的操作效果相当于乘除<span class="math inline"> \(2^n\)</span>,
+但是移位的操作效率比乘除运算的效率更高</p>
+<p>如果整数无法被<span class="math inline"> \(2^n\)</span> 整除，
+尾部的小数部分被丢弃，相当于结果减去了小数部分，所以右移可能结果会偏小
+(向下取整), 因此 -1 右移之后还是 -1, 二进制位不变</p>
+<figure class="highlight cpp"><table><tbody><tr><td class="code"><pre><span class="line">(<span class="number">-5</span>) &gt;&gt; <span class="number">1</span>; <span class="comment">// -3, 11111111 11111111 11111111 11111101</span></span><br><span class="line"><span class="number">5</span> &gt;&gt; <span class="number">1</span>; <span class="comment">// 2, 00000000 00000000 00000000 00000010</span></span><br><span class="line"><span class="number">-1</span>; <span class="comment">// 11111111 11111111 11111111 11111111</span></span><br><span class="line"><span class="number">-1</span> &gt;&gt; <span class="number">1</span>; <span class="comment">// -1, 11111111 11111111 11111111 11111111</span></span><br><span class="line"><span class="type">uint32_t</span> num = (<span class="type">uint32_t</span>)<span class="number">-1</span>; <span class="comment">// 4294967295, 11111111 11111111 11111111 11111111</span></span><br><span class="line">num &gt;&gt; <span class="number">1</span>; <span class="comment">// 2147483647, 01111111 11111111 11111111 11111111</span></span><br></pre></td></tr></tbody></table></figure>
+<p>‍</p>
+<h2 id="读写数据的二进制位">读写数据的二进制位</h2>
+<p>可以通过 "与" 和 "或" 操作来读写一个数据的对应位，
+虽然本文源码以 <code>C++</code>​为例，但这在多数语言中都是相通的操作</p>
+<p>使用 Python 时需要注意一下，Python 的整数是使用数组实现，
+其长度可以无限大，不像普通语言，整数类型具有固定或有限长度</p>
+<figure class="highlight cpp"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">int</span> test = <span class="number">123</span>; <span class="comment">// C++中的int一般为32位整型</span></span><br><span class="line"><span class="comment">// 读取所有的二进制位</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">31</span>; i &gt;= <span class="number">0</span>; --i) {</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"%d"</span>, (test &amp; (<span class="number">0x1</span> &lt;&lt; i)) != <span class="number">0</span> ? <span class="number">1</span> : <span class="number">0</span>);</span><br><span class="line">}</span><br><span class="line"><span class="comment">// 输出: 00000000000000000000000001111011</span></span><br><span class="line"><span class="comment">// 将倒数第2位设置为0</span></span><br><span class="line">test &amp;= ~(<span class="number">0x1</span> &lt;&lt; <span class="number">1</span>); <span class="comment">// 00000000000000000000000001111001</span></span><br><span class="line"><span class="comment">// 再将倒数第3位设置为1</span></span><br><span class="line">test |= (<span class="number">0x1</span> &lt;&lt; <span class="number">2</span>); <span class="comment">// 00000000000000000000000001111101</span></span><br></pre></td></tr></tbody></table></figure>
+<p>这样的话，我们可以将一个整型变量当作一个 bit 数组使用，
+对任意位进行读写</p>
+<p>但是 int 只有 32 位长度，如果我们需要更大的 bit 数组怎么办呢，int64 吗？
+要是需要的长度远大于 64 呢？</p>
+<p>我们可以使用整型数组来当作一个大的 bit 数组使用，
+而且数组的内存是连续的，非常容易操作</p>
+<figure class="highlight cpp"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">// 我们将一个长度为5的int数组当作160位的bit数组使用</span></span><br><span class="line"><span class="type">int</span> bit_arr[<span class="number">5</span>] = {<span class="number">0</span>};</span><br><span class="line"><span class="comment">// 将第100位(从左到右)设置为1</span></span><br><span class="line"><span class="type">int</span> int_index = <span class="number">100</span> / <span class="number">32</span>; <span class="comment">// 先取得bit对应的int下标</span></span><br><span class="line"><span class="type">int</span> bit_index = (<span class="number">100</span> % <span class="number">32</span>); <span class="comment">// 再取得bit在对应int中的下标</span></span><br><span class="line">bit_arr[int_index] |= (<span class="number">0x1</span> &lt;&lt; (<span class="number">31</span> - bit_index)); <span class="comment">// int最左的1位需要左移31位才能访问</span></span><br><span class="line"><span class="comment">// 同理, 取得第100位的bit值也是一样的步骤, 先计算int下标, 再计算int内的bit下标</span></span><br><span class="line"><span class="type">int</span> bit_value = (bit_arr[int_index] &amp; (<span class="number">0x1</span> &lt;&lt; (<span class="number">31</span> - bit_index))) != <span class="number">0</span> ? <span class="number">1</span> : <span class="number">0</span>;</span><br></pre></td></tr></tbody></table></figure>
+<p>可以再进一步，将上述计算封装起来，仅对外暴露简单易用的接口，
+很多语言的标准库中都封装好了，比如 cpp 中的 bitset,
+有兴趣可以自己封装试试</p>
+<p>‍</p>
+<p>‍</p>
+<h2 id="数据转为二进制字符串">数据转为二进制字符串</h2>
+<figure class="highlight cpp"><table><tbody><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">print_bin</span><span class="params">(T data)</span> </span>{</span><br><span class="line">  std::string str;</span><br><span class="line">  <span class="type">uint8_t</span>* bytes = (<span class="type">uint8_t</span>*)&amp;data;</span><br><span class="line">  <span class="keyword">auto</span> len = <span class="built_in">sizeof</span>(T);</span><br><span class="line">  <span class="keyword">for</span> (<span class="type">int</span> i = len - <span class="number">1</span>; i &gt;= <span class="number">0</span>; --i) {</span><br><span class="line">    <span class="type">uint8_t</span> v = bytes[i];</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">8</span> - <span class="number">1</span>; j &gt;= <span class="number">0</span>; --j) {</span><br><span class="line">      str.<span class="built_in">append</span>((v &amp; (<span class="number">0x1</span> &lt;&lt; j)) &gt; <span class="number">0</span> ? <span class="string">"1"</span> : <span class="string">"0"</span>);</span><br><span class="line">    }</span><br><span class="line">    str.<span class="built_in">append</span>(<span class="string">" "</span>);</span><br><span class="line">  }</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"%s\n"</span>, str.<span class="built_in">c_str</span>());</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="数据按位取反之后得到的值是什么">数据按位取反之后得到的值是什么</h2>
+<p>先利用上述的 <code>print_bin</code>​看看 <code>6</code>​ <code>-6</code>​
+<code>~6</code>​的二进制</p>
+<figure class="highlight cpp"><table><tbody><tr><td class="code"><pre><span class="line"><span class="built_in">print_bin</span>(<span class="number">6</span>)</span><br><span class="line"><span class="built_in">print_bin</span>(<span class="number">-6</span>)</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"%d\n"</span>, ~<span class="number">6</span>)</span><br><span class="line"><span class="built_in">print_bin</span>(~<span class="number">6</span>)</span><br></pre></td></tr></tbody></table></figure>
+<p>结果如下</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">11111111 11111111 11111111 11111010 // -6 的二进制（补码）</span><br><span class="line">00000000 00000000 00000000 00000110 // 6 的二进制（补码）</span><br><span class="line">-7</span><br><span class="line">11111111 11111111 11111111 11111001 // ~6 的二进制, 可以看到, 其真值为-7</span><br></pre></td></tr></tbody></table></figure>
+<p>​<code>~6</code>​为什么是 <code>-7</code>​呢，
+其实我们将 <code>-7</code>​的补码写出来就会发现，
+它与 <code>~6</code>​的二进制完全一样</p>
+<p>好像发现了点什么，我们再看看 <code>~(-6)</code>​</p>
+<figure class="highlight cpp"><table><tbody><tr><td class="code"><pre><span class="line"><span class="built_in">print_bin</span>(<span class="number">-6</span>)</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"%d\n"</span>, ~(<span class="number">-6</span>))</span><br><span class="line"><span class="built_in">print_bin</span>(~(<span class="number">-6</span>))</span><br></pre></td></tr></tbody></table></figure>
+<p>结果如下</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">11111111 11111111 11111111 11111010 // -6的二进制 (-6的补码)</span><br><span class="line">5</span><br><span class="line">00000000 00000000 00000000 00000101 // ~(-6)的二进制 (5的补码)</span><br></pre></td></tr></tbody></table></figure>
+<p>​<code>6</code>​取反得到 <code>-7</code>​,
+<code>-6</code>​取反得到 <code>5</code>​,
+难道对一个整数取反就是它的相反数减去 1?</p>
+<p>我们多用几个数字测试一下，包含特殊值 0</p>
+<figure class="highlight cpp"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">-3</span>; i &lt; <span class="number">4</span>; ++i)</span><br><span class="line">{</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">"%d %d\n"</span>, i, ~i + <span class="number">1</span>);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>结果如下，0 也符合预期</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">-3 3</span><br><span class="line">-2 2</span><br><span class="line">-1 1</span><br><span class="line">0 0</span><br><span class="line">1 -1</span><br><span class="line">2 -2</span><br><span class="line">3 -3</span><br></pre></td></tr></tbody></table></figure>
+<p>到此我们其实得到了一个普适的规律: <code>~n + 1 = -n</code>​
+也就是<strong>对一个整数取反 (~) 并加 1 得到它的相反数</strong></p>
+<h2 id="取得二进制位最右边的1">取得二进制位最右边的 1</h2>
+<figure class="highlight cpp"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">int</span> mostRightOne = n &amp; (~n +&nbsp;<span class="number">1</span>);</span><br></pre></td></tr></tbody></table></figure>
+<p>根据以上章节提到的结论 <code>~n + 1 = -n</code>​
+可以得到以下等价代码</p>
+<figure class="highlight cpp"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">int</span> mostRightOne = n &amp; (-n);</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="使用异或交换两个数字">使用异或交换两个数字</h2>
+<ul>
+<li><p>任何数字异或自身等于 0 <code>a ^ a == 0</code>​</p></li>
+<li><p>任何数字与 0 异或等于自身 <code>a ^ 0 == a</code>​</p></li>
+<li><p>异或满足交换律和结合律
+<code>a ^ b == b ^ aa ^ (b ^ c) == (a ^ b) ^ c</code>​</p>
+<figure class="highlight cpp"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">int</span> a = <span class="number">1</span>, b = <span class="number">2</span>;</span><br><span class="line">a = a ^ b;</span><br><span class="line">b = a ^ b;</span><br><span class="line">a = a ^ b:</span><br></pre></td></tr></tbody></table></figure></li>
+</ul>
+<p>‍</p>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
+      <categories>
+        <category>数据结构&amp;设计模式</category>
+      </categories>
+      <tags>
+        <tag>数据结构&amp;设计模式</tag>
+      </tags>
   </entry>
   <entry>
     <title>健康生活清单</title>
@@ -2532,48 +2672,6 @@ M=0</p>
       </tags>
   </entry>
   <entry>
-    <title>行列式的代数余子式计算法</title>
-    <url>/posts/a4019dcb/</url>
-    <content><![CDATA[<p>行列式的代数余子式计算方法，大学学过又忘了</p>
-<span id="more"></span>
-<h2 id="二阶行列式">二阶行列式</h2>
-<p>二阶行列式的计算，<strong>主对角线乘积减去副对角线乘积</strong> <span class="math display"> \[
-\left|
-    \begin{array}{}
-        a &amp; b \\
-        c &amp; d
-    \end{array}
-\right|
-= a * d - b * c
-\]</span></p>
-<h2 id="基础概念">基础概念</h2>
-<ul>
-<li><span class="math inline">\(a_{ij}\)</span>
-表示行列式的第 i 行第 j 列的元素 (行列下标从 1 开始)</li>
-<li><span class="math inline">\(M_{ij}\)</span> 为行列式<span class="math inline"> \(D_n\)</span> 去掉第 i 行和第 j 列后的 n-1 阶行列式，
-称作<span class="math inline"> \(a_{ij}\)</span> 对应的<strong>余子式</strong></li>
-<li><span class="math inline"> \(A_{ij}\)</span> 为<span class="math inline"> \(a_{ij}\)</span> 对应的代数余子式，也就是<span class="math inline"> \(M_{ij}\)</span> 加上正负符号，也就是乘以<span class="math inline"> \((-1)^{i+j}\)</span> <span class="math display">\[
-A_{ij}=(-1)^{i+j} * M_{ij} \]</span></li>
-</ul>
-<h2 id="行列式计算">行列式计算</h2>
-<p>命题: <strong>n 阶行列式<span class="math inline"> \(D_n\)</span> 等于它任意一行 (列) 的所有元素与其对应的代数余子式的乘积之和</strong></p>
-<p><span class="math display">\[
-\begin{align*}
-D_n &amp;= \sum_{j=1}^n a_{ij}*A_{ij} = \sum_{j=1}^n
-(-1)^{i+j}*a_{ij}*M_{ij} \\
-D_n &amp;= \sum_{i=1}^n a_{ij}*A_{ij} = \sum_{i=1}^n
-(-1)^{i+j}*a_{ij}*M_{ij} \\
-\end{align*}
-\]</span></p>
-<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
-      <categories>
-        <category>数学</category>
-      </categories>
-      <tags>
-        <tag>数学</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>添加糖 - 甜蜜杀手</title>
     <url>/posts/90d1f41c/</url>
     <content><![CDATA[<p>让人上瘾，又伤心、伤脑…… 这味调料家家都有，但劝你别多吃！</p>
@@ -2658,5 +2756,47 @@ D_n &amp;= \sum_{i=1}^n a_{ij}*A_{ij} = \sum_{i=1}^n
       <categories>
         <category>生活</category>
       </categories>
+  </entry>
+  <entry>
+    <title>行列式的代数余子式计算法</title>
+    <url>/posts/a4019dcb/</url>
+    <content><![CDATA[<p>行列式的代数余子式计算方法，大学学过又忘了</p>
+<span id="more"></span>
+<h2 id="二阶行列式">二阶行列式</h2>
+<p>二阶行列式的计算，<strong>主对角线乘积减去副对角线乘积</strong> <span class="math display"> \[
+\left|
+    \begin{array}{}
+        a &amp; b \\
+        c &amp; d
+    \end{array}
+\right|
+= a * d - b * c
+\]</span></p>
+<h2 id="基础概念">基础概念</h2>
+<ul>
+<li><span class="math inline">\(a_{ij}\)</span>
+表示行列式的第 i 行第 j 列的元素 (行列下标从 1 开始)</li>
+<li><span class="math inline">\(M_{ij}\)</span> 为行列式<span class="math inline"> \(D_n\)</span> 去掉第 i 行和第 j 列后的 n-1 阶行列式，
+称作<span class="math inline"> \(a_{ij}\)</span> 对应的<strong>余子式</strong></li>
+<li><span class="math inline"> \(A_{ij}\)</span> 为<span class="math inline"> \(a_{ij}\)</span> 对应的代数余子式，也就是<span class="math inline"> \(M_{ij}\)</span> 加上正负符号，也就是乘以<span class="math inline"> \((-1)^{i+j}\)</span> <span class="math display">\[
+A_{ij}=(-1)^{i+j} * M_{ij} \]</span></li>
+</ul>
+<h2 id="行列式计算">行列式计算</h2>
+<p>命题: <strong>n 阶行列式<span class="math inline"> \(D_n\)</span> 等于它任意一行 (列) 的所有元素与其对应的代数余子式的乘积之和</strong></p>
+<p><span class="math display">\[
+\begin{align*}
+D_n &amp;= \sum_{j=1}^n a_{ij}*A_{ij} = \sum_{j=1}^n
+(-1)^{i+j}*a_{ij}*M_{ij} \\
+D_n &amp;= \sum_{i=1}^n a_{ij}*A_{ij} = \sum_{i=1}^n
+(-1)^{i+j}*a_{ij}*M_{ij} \\
+\end{align*}
+\]</span></p>
+<script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">]]></content>
+      <categories>
+        <category>数学</category>
+      </categories>
+      <tags>
+        <tag>数学</tag>
+      </tags>
   </entry>
 </search>
