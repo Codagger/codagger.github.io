@@ -199,6 +199,123 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://fetasty.github.io/posts/8eb85eb3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="fetasty">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风酥糖">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/posts/8eb85eb3/" class="post-title-link" itemprop="url">Wireshark 使用说明</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2024-02-26 11:08:52 / 修改时间：11:13:30" itemprop="dateCreated datePublished" datetime="2024-02-26T11:08:52+08:00">2024-02-26</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/computer-science/" itemprop="url" rel="index"><span itemprop="name">计算机基础</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/posts/8eb85eb3/" class="post-meta-item leancloud_visitors" data-flag-title="Wireshark 使用说明" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/posts/8eb85eb3/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/posts/8eb85eb3/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="理解网络层次">理解网络层次</h2>
+<p>OSI 五层协议</p>
+<ul>
+<li><p>物理层：一般是基于电信号进行 bit 流传输</p></li>
+<li><p><strong>数据链路层</strong>: 定义 bit 信号分组方式，常见的协议是
+以太网协议 (Ethernet)</p>
+<p>Ethernet 数据帧 [帧头，数据，帧尾]</p></li>
+<li><p><strong> 网络层</strong>: 划分广播域 / 子网，
+一般网络层都是 IP 协议</p>
+<p>IP 数据帧 [报头，数据]</p></li>
+<li><p><strong> 传输层</strong>: 建立端口到端口的通信，
+常见传输层协议有 TCP/UDP</p>
+<p>TCP 基于连接，提供可靠传输，面向字节流，三次握手 / 四次挥手
+(创建 / 断开连接), 粘包 / 拆包，timewait, 报文头长，总体传输慢，窗口，
+拥塞控制</p>
+<p>UDP 无连接，尽可能快，不可靠传输，面向报文，过长报文会被分片</p></li>
+<li><p><strong>应用层</strong></p></li>
+</ul>
+<img data-src="/posts/8eb85eb3/network_layers.png" class="">
+<p>‍</p>
+<p>使用 Wireshark 分析数据包时，一般关注的是后面三层，
+每层的报文头中都包含了特定信息，在数据层存放更上层的数据</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/posts/8eb85eb3/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://fetasty.github.io/posts/377a3f70/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -224,7 +341,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2024-02-18 14:50:51 / 修改时间：14:51:28" itemprop="dateCreated datePublished" datetime="2024-02-18T14:50:51+08:00">2024-02-18</time>
+              <time title="创建时间：2024-02-18 14:50:51 / 修改时间：14:51:53" itemprop="dateCreated datePublished" datetime="2024-02-18T14:50:51+08:00">2024-02-18</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1129,111 +1246,6 @@ sagit]</p>
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://fetasty.github.io/posts/c3f5fb77/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.png">
-      <meta itemprop="name" content="fetasty">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风酥糖">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/posts/c3f5fb77/" class="post-title-link" itemprop="url">Python 中的可变对象与不可变对象</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2022-02-21 20:18:46" itemprop="dateCreated datePublished" datetime="2022-02-21T20:18:46+08:00">2022-02-21</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-06-19 14:55:27" itemprop="dateModified" datetime="2023-06-19T14:55:27+08:00">2023-06-19</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Python/" itemprop="url" rel="index"><span itemprop="name">Python</span></a>
-                </span>
-            </span>
-
-          
-            <span id="/posts/c3f5fb77/" class="post-meta-item leancloud_visitors" data-flag-title="Python 中的可变对象与不可变对象" title="阅读次数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-eye"></i>
-              </span>
-              <span class="post-meta-item-text">阅读次数：</span>
-              <span class="leancloud-visitors-count"></span>
-            </span>
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="far fa-comment"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/posts/c3f5fb77/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/posts/c3f5fb77/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>Python 中只存在 “引用传递” 这一种传递方式，
-准确来说应该是<strong>指针传递</strong> ,
-通过 <code>id()</code> 函数可以确定，参数传入前和传入后的地址值一样</p>
-<p>所谓的对象可变与不可变，其实是看是否提供了修改自身对象的方法</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/posts/c3f5fb77/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1305,7 +1317,7 @@ sagit]</p>
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">38</span>
+          <span class="site-state-item-count">39</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1318,7 +1330,7 @@ sagit]</p>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-count">11</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
