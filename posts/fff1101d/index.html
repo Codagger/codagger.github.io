@@ -20,20 +20,21 @@
     var CONFIG = {"hostname":"fetasty.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":true,"lazyload":true,"pangu":true,"comments":{"style":"tabs","active":"valine","storage":true,"lazyload":false,"nav":null,"activeClass":"valine"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="C++11 提供了线程库和同步库，可以屏蔽操作系统接口细节使用多线程了">
+  <meta name="description" content="Scapy 是一个强大的数据包处理工具，可以轻松的按照层次构建网络包， 比如这样 1packet &#x3D; Ether()&#x2F;IP(dst&#x3D;&quot;192.168.0.1&quot;)&#x2F;TCP(dport&#x3D;80)&#x2F;b&#39;data&#39;">
 <meta property="og:type" content="article">
-<meta property="og:title" content="C++11 中的线程库 thread 与同步库 mutex">
-<meta property="og:url" content="https://fetasty.github.io/posts/4cc95c54/index.html">
+<meta property="og:title" content="scapy 简单使用">
+<meta property="og:url" content="https://fetasty.github.io/posts/fff1101d/index.html">
 <meta property="og:site_name" content="风酥糖">
-<meta property="og:description" content="C++11 提供了线程库和同步库，可以屏蔽操作系统接口细节使用多线程了">
+<meta property="og:description" content="Scapy 是一个强大的数据包处理工具，可以轻松的按照层次构建网络包， 比如这样 1packet &#x3D; Ether()&#x2F;IP(dst&#x3D;&quot;192.168.0.1&quot;)&#x2F;TCP(dport&#x3D;80)&#x2F;b&#39;data&#39;">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2022-02-20T14:18:18.000Z">
-<meta property="article:modified_time" content="2023-06-19T08:49:13.548Z">
+<meta property="article:published_time" content="2024-02-26T03:26:57.000Z">
+<meta property="article:modified_time" content="2024-02-26T03:30:17.855Z">
 <meta property="article:author" content="fetasty">
-<meta property="article:tag" content="C++">
+<meta property="article:tag" content="计算机基础">
+<meta property="article:tag" content="网络">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://fetasty.github.io/posts/4cc95c54/">
+<link rel="canonical" href="https://fetasty.github.io/posts/fff1101d/">
 
 
 <script id="page-configurations">
@@ -46,7 +47,7 @@
   };
 </script>
 
-  <title>C++11 中的线程库 thread 与同步库 mutex | 风酥糖</title>
+  <title>scapy 简单使用 | 风酥糖</title>
   
 
 
@@ -199,7 +200,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://fetasty.github.io/posts/4cc95c54/">
+    <link itemprop="mainEntityOfPage" href="https://fetasty.github.io/posts/fff1101d/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.png">
@@ -212,7 +213,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          C++11 中的线程库 thread 与同步库 mutex
+          scapy 简单使用
         </h1>
 
         <div class="post-meta">
@@ -221,28 +222,22 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2022-02-20 22:18:18" itemprop="dateCreated datePublished" datetime="2022-02-20T22:18:18+08:00">2022-02-20</time>
+              <time title="创建时间：2024-02-26 11:26:57 / 修改时间：11:30:17" itemprop="dateCreated datePublished" datetime="2024-02-26T11:26:57+08:00">2024-02-26</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-06-19 16:49:13" itemprop="dateModified" datetime="2023-06-19T16:49:13+08:00">2023-06-19</time>
-              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/C/" itemprop="url" rel="index"><span itemprop="name">C++</span></a>
+                  <a href="/categories/computer-science/" itemprop="url" rel="index"><span itemprop="name">计算机基础</span></a>
                 </span>
             </span>
 
           
-            <span id="/posts/4cc95c54/" class="post-meta-item leancloud_visitors" data-flag-title="C++11 中的线程库 thread 与同步库 mutex" title="阅读次数">
+            <span id="/posts/fff1101d/" class="post-meta-item leancloud_visitors" data-flag-title="scapy 简单使用" title="阅读次数">
               <span class="post-meta-item-icon">
                 <i class="fa fa-eye"></i>
               </span>
@@ -257,8 +252,8 @@
       </span>
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/posts/4cc95c54/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/posts/4cc95c54/" itemprop="commentCount"></span>
+    <a title="valine" href="/posts/fff1101d/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/posts/fff1101d/" itemprop="commentCount"></span>
     </a>
   </span>
   
@@ -273,29 +268,19 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>C++11 提供了线程库和同步库，可以屏蔽操作系统接口细节使用多线程了</p>
+        <p>Scapy 是一个强大的数据包处理工具，可以轻松的按照层次构建网络包，
+比如这样</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">packet = Ether()/IP(dst=<span class="string">"192.168.0.1"</span>)/TCP(dport=<span class="number">80</span>)/<span class="string">b'data'</span></span><br></pre></td></tr></tbody></table></figure>
 <span id="more"></span>
-<h2 id="多线程">多线程</h2>
-<p><code>std::thread</code> 创建与使用</p>
-<p><code>std::this_thread</code> 当前线程</p>
-<h2 id="线程同步">线程同步</h2>
-<p><code>lock_guard</code> 互斥锁</p>
-<p><code>unique_lock</code> + <code>condition_variable</code> 条件锁</p>
-<h2 id="原子操作库">原子操作库</h2>
-<p>实现轻量免锁的多线程安全操作</p>
-<p><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/atomic/atomic">https://zh.cppreference.com/w/cpp/atomic/atomic</a></p>
-<p><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/atomic/atomic_flag">https://zh.cppreference.com/w/cpp/atomic/atomic_flag</a></p>
-<figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">std::atomic_int ttt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">test</span><span class="params">(<span class="type">bool</span> add)</span> </span>{</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100000</span>; ++i) {</span><br><span class="line">        <span class="keyword">if</span> (add) ++ttt;</span><br><span class="line">        <span class="keyword">else</span> --ttt;</span><br><span class="line">    }</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"th exit!\n"</span>);</span><br><span class="line">}</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>{</span><br><span class="line">    ttt = <span class="number">0</span>;</span><br><span class="line">    std::vector&lt;std::thread&gt; ths;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">4</span>; ++i) {</span><br><span class="line">        ths.<span class="built_in">emplace_back</span>(test, i % <span class="number">2</span> == <span class="number">0</span>);</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; th : ths) {</span><br><span class="line">        th.<span class="built_in">join</span>();</span><br><span class="line">    }</span><br><span class="line">    std::cout &lt;&lt; ttt &lt;&lt; std::endl;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>输出为 0; 如果把头一行的 std::atomic_int 换成 int, 得到的结果偏差巨大</p>
-<h2 id="异步任务-future-promise">异步任务 future &amp; promise</h2>
-<p>定义于 <code>&lt;future&gt;</code> 头文件</p>
-<p>使用 future 三种方式: packaged_task, promise, async</p>
-<p><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/thread/future">https://zh.cppreference.com/w/cpp/thread/future</a></p>
-<figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;future&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;thread&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">    <span class="comment">// 来自 packaged_task 的 future</span></span><br><span class="line">    <span class="function">std::packaged_task&lt;<span class="title">int</span><span class="params">()</span>&gt; <span class="title">task</span><span class="params">([](){ <span class="keyword">return</span> <span class="number">7</span>; })</span></span>; <span class="comment">// 包装函数</span></span><br><span class="line">    std::future&lt;<span class="type">int</span>&gt; f1 = task.<span class="built_in">get_future</span>();  <span class="comment">// 获取 future</span></span><br><span class="line">    std::<span class="built_in">thread</span>(std::<span class="built_in">move</span>(task)).<span class="built_in">detach</span>(); <span class="comment">// 在线程上运行</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 来自 async() 的 future</span></span><br><span class="line">    std::future&lt;<span class="type">int</span>&gt; f2 = std::<span class="built_in">async</span>(std::launch::async, [](){ <span class="keyword">return</span> <span class="number">8</span>; });</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 来自 promise 的 future</span></span><br><span class="line">    std::promise&lt;<span class="type">int</span>&gt; p;</span><br><span class="line">    std::future&lt;<span class="type">int</span>&gt; f3 = p.<span class="built_in">get_future</span>();</span><br><span class="line">    std::<span class="built_in">thread</span>( [&amp;p]{ p.<span class="built_in">set_value_at_thread_exit</span>(<span class="number">9</span>); }).<span class="built_in">detach</span>();</span><br><span class="line"></span><br><span class="line">    std::cout &lt;&lt; <span class="string">"Waiting..."</span> &lt;&lt; std::flush;</span><br><span class="line">    f1.<span class="built_in">wait</span>();</span><br><span class="line">    f2.<span class="built_in">wait</span>();</span><br><span class="line">    f3.<span class="built_in">wait</span>();</span><br><span class="line">    std::cout &lt;&lt; <span class="string">"Done!\nResults are: "</span></span><br><span class="line">              &lt;&lt; f1.<span class="built_in">get</span>() &lt;&lt; <span class="string">' '</span> &lt;&lt; f2.<span class="built_in">get</span>() &lt;&lt; <span class="string">' '</span> &lt;&lt; f3.<span class="built_in">get</span>() &lt;&lt; <span class="string">'\n'</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p><code>std::async</code></p>
-<p>最简单的异步任务使用</p>
-<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">std::launch::async // 运行新线程, 以异步执行任务</span><br><span class="line">std::launch::deferred // 调用方线程上首次请求其结果时执行任务（惰性求值）</span><br></pre></td></tr></tbody></table></figure>
-<figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 马上开始异步任务</span></span><br><span class="line">std::future&lt;<span class="type">int</span>&gt; f2 = std::<span class="built_in">async</span>(std::launch::async, [](){ <span class="keyword">return</span> <span class="number">8</span>; });</span><br><span class="line">f2.<span class="built_in">wait</span>(); <span class="comment">// 阻塞至结果变得可用</span></span><br><span class="line"><span class="type">int</span> result = f2.<span class="built_in">get</span>(); <span class="comment">// 获取结果</span></span><br></pre></td></tr></tbody></table></figure>
+<p>可以轻松的获取某一层的内容</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> packet.haslayer(Ether):</span><br><span class="line">    packet.getlayer(Ether).show()</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> packet.haslayer(Raw):</span><br><span class="line">    packet.getlayer(Raw).show()</span><br><span class="line"></span><br><span class="line">packet.original <span class="comment"># 包的原始二进制bytes</span></span><br><span class="line">packet.getlayer(TCP).original <span class="comment"># 获取包的TCP层的二进制bytes</span></span><br></pre></td></tr></tbody></table></figure>
+<p>可以读取 wireshark 的捕获文件</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">packets = rdpcap(<span class="string">'wireshark_capture.pcap'</span>)</span><br><span class="line"><span class="keyword">for</span> packet <span class="keyword">in</span> packets:</span><br><span class="line">    <span class="comment"># pass</span></span><br><span class="line">packets[<span class="number">0</span>].payload.show()</span><br></pre></td></tr></tbody></table></figure>
+<p>可以在第 2 层或者第 3 层发送数据包，
+分别使用 <code>sendp</code> 或者 <code>send</code></p>
+<p>也可以使用 scapy 来重播 wireshark 捕获的包</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install scapy</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> scapy.<span class="built_in">all</span> <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建TCP服务器</span></span><br><span class="line">server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)</span><br><span class="line">server_socket.bind((<span class="string">'192.168.10.225'</span>, <span class="number">8555</span>))</span><br><span class="line">server_socket.listen(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">"服务器已启动，等待客户端连接..."</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 接受客户端连接</span></span><br><span class="line">client_socket, client_address = server_socket.accept()</span><br><span class="line"><span class="built_in">print</span>(<span class="string">"客户端已连接："</span>, client_address)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 网口</span></span><br><span class="line">select_iface = <span class="literal">None</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">'-'</span> * <span class="number">10</span>)</span><br><span class="line"><span class="keyword">for</span> inter <span class="keyword">in</span> conf.ifaces:</span><br><span class="line">    iface: NetworkInterface = conf.ifaces[inter]</span><br><span class="line">    <span class="built_in">print</span>(iface.name, iface.network_name)</span><br><span class="line">    <span class="keyword">if</span> iface.name == <span class="string">'环回测试'</span>:</span><br><span class="line">        select_iface = iface</span><br><span class="line">        <span class="built_in">print</span>(iface.ips)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">'192.168.1.2'</span> <span class="keyword">in</span> iface.ips[<span class="number">4</span>]) <span class="comment"># 也可以以这个作为判断条件, 寻找正确的网口</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取pcap文件</span></span><br><span class="line">packets: PacketList = rdpcap(<span class="string">'225to121_targets.pcapng'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> packet <span class="keyword">in</span> packets:</span><br><span class="line">    p: Packet = packet</span><br><span class="line">    <span class="keyword">if</span> p.haslayer(Raw):</span><br><span class="line">        <span class="comment"># 重播数据包</span></span><br><span class="line">        raw_layer = p.getlayer(Raw)</span><br><span class="line">        sendp(raw_layer.original, inter=<span class="number">0.5</span>, socket=client_socket)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f"send: <span class="subst">{raw_layer.original.<span class="built_in">hex</span>()}</span>"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 关闭连接</span></span><br><span class="line">client_socket.close()</span><br><span class="line">server_socket.close()</span><br></pre></td></tr></tbody></table></figure>
 <script type="text&#x2F;javascript" src="https://unpkg.com/kity@2.0.4/dist/kity.min.js"></script><script type="text&#x2F;javascript" src="https://unpkg.com/kityminder-core@1.4.50/dist/kityminder.core.min.js"></script><script defer="true" type="text&#x2F;javascript" src="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.js"></script><link rel="stylesheet" type="text&#x2F;css" href="https://unpkg.com/hexo-simple-mindmap@0.8.0/dist/mindmap.min.css">
     </div>
 
@@ -311,7 +296,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="https://fetasty.github.io/posts/4cc95c54/" title="C++11 中的线程库 thread 与同步库 mutex">https://fetasty.github.io/posts/4cc95c54/</a>
+    <a href="https://fetasty.github.io/posts/fff1101d/" title="scapy 简单使用">https://fetasty.github.io/posts/fff1101d/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -323,7 +308,8 @@
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/C/" rel="tag"><i class="fa fa-tag"></i> C++</a>
+              <a href="/tags/computer-science/" rel="tag"><i class="fa fa-tag"></i> 计算机基础</a>
+              <a href="/tags/network/" rel="tag"><i class="fa fa-tag"></i> 网络</a>
           </div>
 
         
@@ -332,13 +318,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/posts/be0f7d71/" rel="prev" title="C++11 中的默认函数控制 delete 和 default">
-      <i class="fa fa-chevron-left"></i> C++11 中的默认函数控制 delete 和 default
+    <a href="/posts/8eb85eb3/" rel="prev" title="Wireshark 使用说明">
+      <i class="fa fa-chevron-left"></i> Wireshark 使用说明
     </a></div>
-      <div class="post-nav-item">
-    <a href="/posts/15ddce4e/" rel="next" title="C++ 不定参数到 lambda 的传递">
-      C++ 不定参数到 lambda 的传递 <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -398,7 +381,6 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E7%BA%BF%E7%A8%8B"><span class="nav-number">1.</span> <span class="nav-text">多线程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E5%90%8C%E6%AD%A5"><span class="nav-number">2.</span> <span class="nav-text">线程同步</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C%E5%BA%93"><span class="nav-number">3.</span> <span class="nav-text">原子操作库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1-future-promise"><span class="nav-number">4.</span> <span class="nav-text">异步任务 future &amp; promise</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
